@@ -2,10 +2,11 @@
   "expo": {
     "name": "Cougar-Electric-Mobile-App",
     "slug": "Cougar-Electric-Mobile-App",
+    "scheme": "cougar-electric",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
-    "userInterfaceStyle": "light",
+    "userInterfaceStyle": "dark",
     "ios": {
       "supportsTablet": true
     },
@@ -19,6 +20,9 @@
     },
     "web": {
       "favicon": "./assets/favicon.png"
-    }
+    },
+    "plugins": [
+      "expo-router"
+    ]
   }
 }
