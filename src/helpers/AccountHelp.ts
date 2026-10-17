@@ -1,14 +1,6 @@
-export type Registration = {
-  fullName: string;
-  email: string;
-  phone: string;
-  address: string;
-  city: string;
-  state: string;
-  zip: string;
-  password: string;
-  confirmPassword: string;
-};
+import type { RegistrationFormValues, RegistrationRequest } from '../auth/types';
+
+export type Registration = RegistrationFormValues;
 
 export type Errors = Partial<Record<keyof Registration, string>>;
 
@@ -34,29 +26,15 @@ export function validateRegistration(values: Registration): Errors {
   return errors;
 }
 
-export async function registerCustomer(values: Registration): Promise<void> {
-  const endpoint = process.env.EXPO_PUBLIC_REGISTRATION_URL;
-  if (!endpoint) throw new Error('Registration is not connected yet. Your account has not been created. Please try again once the service is available.');
-  if (!endpoint.startsWith('https://')) throw new Error('Registration requires a secure connection. Please contact support.');
-  const { confirmPassword: _confirmation, ...payload } = values;
-  const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 15000);
-  try {
-    const response = await fetch(endpoint, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ ...payload, fullName: payload.fullName.trim(), email: payload.email.trim().toLowerCase(), phone: payload.phone.trim(), address: payload.address.trim(), city: payload.city.trim(), state: payload.state.trim().toUpperCase(), zip: payload.zip.trim() }),
-      signal: controller.signal,
-    });
-    if (!response.ok) {
-      if (response.status === 409) throw new Error('An account with this email already exists. Please use a different email.');
-      throw new Error('We could not create your account. Please try again.');
-    }
-  } catch (error) {
-    if (error instanceof Error && error.name === 'AbortError') throw new Error('The request timed out. Please try again.');
-    if (error instanceof TypeError) throw new Error('Unable to connect. Check your internet connection and try again.');
-    throw error;
-  } finally {
-    clearTimeout(timeout);
-  }
+export function createRegistrationRequest(values: Registration): RegistrationRequest {
+  return {
+    fullName: values.fullName.trim(),
+    email: values.email.trim().toLowerCase(),
+    phone: values.phone.trim(),
+    address: values.address.trim(),
+    city: values.city.trim(),
+    state: values.state.trim().toUpperCase(),
+    zip: values.zip.trim(),
+    password: values.password,
+  };
 }

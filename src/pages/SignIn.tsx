@@ -1,25 +1,43 @@
 import { Link } from 'expo-router';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { Keyboard, KeyboardAvoidingView, Platform, Pressable, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Logo } from '../parts/Logo';
 import { TextBox } from '../parts/TextBox';
 import { styles } from '../styles/PageStyle';
+import { authService, getAuthErrorMessage } from '../auth/service';
 
 export default function SignIn() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [attempted, setAttempted] = useState(false);
   const [continued, setContinued] = useState(false);
+  const [message, setMessage] = useState('');
+  const [submitting, setSubmitting] = useState(false);
+  const [passwordInputKey, setPasswordInputKey] = useState(0);
+  const submittingRef = useRef(false);
   const emailError = !email.trim() ? 'Enter your email address.' : !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim()) ? 'Enter a valid email address.' : undefined;
   const passwordError = !password ? 'Enter your password.' : undefined;
 
-  function submit() {
+  async function submit() {
+    if (submittingRef.current) return;
     Keyboard.dismiss();
     setAttempted(true);
+    setMessage('');
     if (emailError || passwordError) return;
-    setPassword('');
-    setContinued(true);
+    submittingRef.current = true;
+    setSubmitting(true);
+    try {
+      await authService.signIn({ email: email.trim().toLowerCase(), password });
+      setContinued(true);
+    } catch (error) {
+      setMessage(getAuthErrorMessage(error));
+    } finally {
+      setPassword('');
+      setPasswordInputKey((key) => key + 1);
+      submittingRef.current = false;
+      setSubmitting(false);
+    }
   }
 
   return (
@@ -50,11 +68,12 @@ export default function SignIn() {
               <>
                 <Text accessibilityRole="header" style={styles.cardTitle}>Sign in</Text>
                 <Text style={styles.cardSubtitle}>Welcome back. Enter your details to continue.</Text>
+                {!!message && <View style={styles.notice}><Text accessibilityRole="alert" accessibilityLiveRegion="assertive" style={styles.noticeText}>{message}</Text></View>}
                 <View style={{ marginTop: 26 }}>
-                  <TextBox label="Email address" placeholder="you@example.com" value={email} onChangeText={setEmail} error={attempted ? emailError : undefined} keyboardType="email-address" autoComplete="email" textContentType="emailAddress" autoCapitalize="none" autoCorrect={false} />
-                  <TextBox label="Password" placeholder="Enter your password" value={password} onChangeText={setPassword} error={attempted ? passwordError : undefined} password autoComplete="current-password" textContentType="password" autoCapitalize="none" autoCorrect={false} returnKeyType="go" onSubmitEditing={submit} />
+                  <TextBox label="Email address" placeholder="you@example.com" value={email} onChangeText={(text) => { setEmail(text); setMessage(''); }} error={attempted ? emailError : undefined} keyboardType="email-address" autoComplete="email" textContentType="emailAddress" autoCapitalize="none" autoCorrect={false} />
+                  <TextBox key={passwordInputKey} label="Password" placeholder="Enter your password" value={password} onChangeText={(text) => { setPassword(text); setMessage(''); }} error={attempted ? passwordError : undefined} password autoComplete="current-password" textContentType="password" autoCapitalize="none" autoCorrect={false} returnKeyType="go" onSubmitEditing={submit} />
                 </View>
-                <Pressable accessibilityRole="button" onPress={submit} style={({ pressed }) => [styles.button, pressed && styles.buttonPressed]}><Text style={styles.buttonText}>SIGN IN   →</Text></Pressable>
+                <Pressable accessibilityRole="button" accessibilityState={{ disabled: submitting, busy: submitting }} disabled={submitting} onPress={submit} style={({ pressed }) => [styles.button, pressed && styles.buttonPressed]}><Text style={styles.buttonText}>{submitting ? 'SIGNING IN…' : 'SIGN IN   →'}</Text></Pressable>
                 <View style={styles.accountLink}><Text style={styles.cardSubtitle}>Don’t have an account?</Text><Link href="/register" style={styles.textLink}>Create here</Link></View>
               </>
             )}
