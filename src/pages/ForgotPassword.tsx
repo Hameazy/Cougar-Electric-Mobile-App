@@ -1,5 +1,7 @@
 
+
 import { Link } from 'expo-router';
+import { sendPasswordResetEmail } from 'firebase/auth';
 import { useState } from 'react';
 import {
   Keyboard,
@@ -11,6 +13,8 @@ import {
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+
+import { auth } from '../../firebaseConfig';
 import { Logo } from '../parts/Logo';
 import { TextBox } from '../parts/TextBox';
 import { styles } from '../styles/PageStyle';
@@ -19,6 +23,8 @@ export default function ForgotPassword() {
   const [email, setEmail] = useState('');
   const [attempted, setAttempted] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [requestError, setRequestError] = useState('');
 
   const emailError = !email.trim()
     ? 'Enter your email address.'
@@ -26,15 +32,45 @@ export default function ForgotPassword() {
       ? 'Enter a valid email address.'
       : undefined;
 
-  function submit() {
+  async function submit() {
     Keyboard.dismiss();
     setAttempted(true);
+    setRequestError('');
 
-    if (emailError) return;
+    if (emailError || loading) return;
 
-    // TODO: Connect to the authentication service when available.
-    // No reset email is sent by this frontend-only version.
-    setSubmitted(true);
+    setLoading(true);
+
+    try {
+      // Ask Firebase to send a password reset email.
+      await sendPasswordResetEmail(auth, email.trim());
+
+      setSubmitted(true);
+    } catch (error: unknown) {
+      const code =
+        error && typeof error === 'object' && 'code' in error
+          ? String(error.code)
+          : '';
+
+      if (code === 'auth/too-many-requests') {
+        setRequestError(
+          'Too many attempts. Please try again later.'
+        );
+      } else if (
+        code === 'auth/invalid-api-key' ||
+        code === 'auth/operation-not-allowed'
+      ) {
+        setRequestError(
+          'Password reset is currently unavailable.'
+        );
+      } else {
+        setRequestError(
+          'Unable to process your request. Please try again.'
+        );
+      }
+    } finally {
+      setLoading(false);
+    }
   }
 
   return (
@@ -63,8 +99,12 @@ export default function ForgotPassword() {
           </View>
 
           <View style={styles.topline}>
-            <Text style={styles.toplineText}>CUSTOMER ACCESS</Text>
-            <Text style={styles.step}>COUGAR ELECTRIC</Text>
+            <Text style={styles.toplineText}>
+              CUSTOMER ACCESS
+            </Text>
+            <Text style={styles.step}>
+              COUGAR ELECTRIC
+            </Text>
           </View>
 
           <Logo />
@@ -74,7 +114,10 @@ export default function ForgotPassword() {
               RELIABLE. PROFESSIONAL. LOCAL.
             </Text>
 
-            <Text accessibilityRole="header" style={styles.title}>
+            <Text
+              accessibilityRole="header"
+              style={styles.title}
+            >
               Reset your password.
             </Text>
 
@@ -91,18 +134,20 @@ export default function ForgotPassword() {
                   accessibilityRole="header"
                   style={styles.cardTitle}
                 >
-                  Request received
+                  Check your email
                 </Text>
 
                 <Text style={styles.cardSubtitle}>
-                  Your email address has been validated.
-                  Password reset emails are not available
-                  until account authentication is connected.
+                  If an account exists for this email address,
+                  you should receive a password reset link
+                  shortly. Please check your inbox and spam folder.
                 </Text>
 
-                <Link href="/" style={styles.textLink}>
-                  Back to sign in
-                </Link>
+                <View style={{ marginTop: 24 }}>
+                  <Link href="/" style={styles.textLink}>
+                    Back to sign in
+                  </Link>
+                </View>
               </>
             ) : (
               <>
@@ -135,16 +180,32 @@ export default function ForgotPassword() {
                   />
                 </View>
 
+                {requestError ? (
+                  <Text
+                    accessibilityRole="alert"
+                    style={{
+                      color: '#B91C1C',
+                      marginBottom: 12,
+                    }}
+                  >
+                    {requestError}
+                  </Text>
+                ) : null}
+
                 <Pressable
                   accessibilityRole="button"
+                  disabled={loading}
                   onPress={submit}
                   style={({ pressed }) => [
                     styles.button,
                     pressed && styles.buttonPressed,
+                    loading && { opacity: 0.6 },
                   ]}
                 >
                   <Text style={styles.buttonText}>
-                    CONTINUE →
+                    {loading
+                      ? 'SENDING...'
+                      : 'SEND RESET EMAIL →'}
                   </Text>
                 </Pressable>
 
@@ -152,6 +213,7 @@ export default function ForgotPassword() {
                   <Text style={styles.cardSubtitle}>
                     Remember your password?
                   </Text>
+
                   <Link href="/" style={styles.textLink}>
                     Sign in
                   </Link>
