@@ -1,6 +1,11 @@
 
-import { Link } from 'expo-router';
-import { useState } from 'react';
+
+import { Link, useLocalSearchParams } from 'expo-router';
+import {
+  confirmPasswordReset,
+  verifyPasswordResetCode,
+} from 'firebase/auth';
+import { useEffect, useState } from 'react';
 import {
   Keyboard,
   KeyboardAvoidingView,
@@ -11,15 +16,27 @@ import {
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+
+import { auth } from '../../firebaseConfig';
 import { Logo } from '../parts/Logo';
 import { TextBox } from '../parts/TextBox';
 import { styles } from '../styles/PageStyle';
 
 export default function ResetPassword() {
+  const params = useLocalSearchParams<{ oobCode?: string }>();
+
+  const resetCode =
+    typeof params.oobCode === 'string' ? params.oobCode : '';
+
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [attempted, setAttempted] = useState(false);
   const [validated, setValidated] = useState(false);
+
+  const [checkingCode, setCheckingCode] = useState(true);
+  const [validCode, setValidCode] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [resetError, setResetError] = useState('');
 
   const passwordError = !password
     ? 'Enter a new password.'
@@ -33,18 +50,95 @@ export default function ResetPassword() {
       ? 'Passwords do not match.'
       : undefined;
 
-  function submit() {
+  // Check that the reset link contains a valid Firebase code.
+  useEffect(() => {
+    let active = true;
+
+    async function checkCode() {
+      setCheckingCode(true);
+      setValidCode(false);
+      setResetError('');
+      setValidated(false);
+
+      if (!resetCode) {
+        setCheckingCode(false);
+        return;
+      }
+
+      try {
+        await verifyPasswordResetCode(auth, resetCode);
+
+        if (active) {
+          setValidCode(true);
+        }
+      } catch {
+        if (active) {
+          setValidCode(false);
+        }
+      } finally {
+        if (active) {
+          setCheckingCode(false);
+        }
+      }
+    }
+
+    checkCode();
+
+    return () => {
+      active = false;
+    };
+  }, [resetCode]);
+
+  async function submit() {
     Keyboard.dismiss();
     setAttempted(true);
+    setResetError('');
 
-    if (passwordError || confirmError) return;
+    if (
+      passwordError ||
+      confirmError ||
+      !validCode ||
+      !resetCode ||
+      loading
+    ) {
+      return;
+    }
 
-    // TODO: Verify the reset token and update the password
-    // through the team's authentication provider.
-    // This screen currently validates inputs only.
-    setPassword('');
-    setConfirmPassword('');
-    setValidated(true);
+    setLoading(true);
+
+    try {
+      // Firebase verifies the code and changes the password.
+      await confirmPasswordReset(auth, resetCode, password);
+
+      setPassword('');
+      setConfirmPassword('');
+      setValidated(true);
+    } catch (error: unknown) {
+      const code =
+        error && typeof error === 'object' && 'code' in error
+          ? String(error.code)
+          : '';
+
+      if (
+        code === 'auth/expired-action-code' ||
+        code === 'auth/invalid-action-code'
+      ) {
+        setValidCode(false);
+        setResetError(
+          'This reset link is invalid or expired. Request a new one.'
+        );
+      } else if (code === 'auth/weak-password') {
+        setResetError(
+          'Please choose a stronger password.'
+        );
+      } else {
+        setResetError(
+          'Unable to reset your password. Please try again.'
+        );
+      }
+    } finally {
+      setLoading(false);
+    }
   }
 
   return (
@@ -73,8 +167,12 @@ export default function ResetPassword() {
           </View>
 
           <View style={styles.topline}>
-            <Text style={styles.toplineText}>CUSTOMER ACCESS</Text>
-            <Text style={styles.step}>COUGAR ELECTRIC</Text>
+            <Text style={styles.toplineText}>
+              CUSTOMER ACCESS
+            </Text>
+            <Text style={styles.step}>
+              COUGAR ELECTRIC
+            </Text>
           </View>
 
           <Logo />
@@ -84,12 +182,16 @@ export default function ResetPassword() {
               RELIABLE. PROFESSIONAL. LOCAL.
             </Text>
 
-            <Text accessibilityRole="header" style={styles.title}>
+            <Text
+              accessibilityRole="header"
+              style={styles.title}
+            >
               Create a new password.
             </Text>
 
             <Text style={styles.subtitle}>
-              Choose a new password to secure your Cougar Electric account.
+              Choose a new password to secure your
+              Cougar Electric account.
             </Text>
           </View>
 
@@ -100,18 +202,51 @@ export default function ResetPassword() {
                   accessibilityRole="header"
                   style={styles.cardTitle}
                 >
-                  Password validated
+                  Password updated
                 </Text>
 
                 <Text style={styles.cardSubtitle}>
-                  Your new password meets the requirements.
-                  Your account password has not been changed yet
-                  because authentication is not connected.
+                  Your password has been reset successfully.
+                  You can now sign in with your new password.
                 </Text>
 
                 <View style={{ marginTop: 24 }}>
                   <Link href="/" style={styles.textLink}>
                     Back to sign in
+                  </Link>
+                </View>
+              </>
+            ) : checkingCode ? (
+              <>
+                <Text style={styles.cardTitle}>
+                  Checking reset link
+                </Text>
+
+                <Text style={styles.cardSubtitle}>
+                  Please wait while we verify your
+                  password reset link.
+                </Text>
+              </>
+            ) : !validCode ? (
+              <>
+                <Text
+                  accessibilityRole="header"
+                  style={styles.cardTitle}
+                >
+                  Invalid reset link
+                </Text>
+
+                <Text style={styles.cardSubtitle}>
+                  This reset link is missing, invalid,
+                  or expired. Please request a new one.
+                </Text>
+
+                <View style={{ marginTop: 24 }}>
+                  <Link
+                    href="/forgot-password"
+                    style={styles.textLink}
+                  >
+                    Request another link
                   </Link>
                 </View>
               </>
@@ -156,16 +291,32 @@ export default function ResetPassword() {
                   />
                 </View>
 
+                {resetError ? (
+                  <Text
+                    accessibilityRole="alert"
+                    style={{
+                      color: '#B91C1C',
+                      marginBottom: 12,
+                    }}
+                  >
+                    {resetError}
+                  </Text>
+                ) : null}
+
                 <Pressable
                   accessibilityRole="button"
+                  disabled={loading}
                   onPress={submit}
                   style={({ pressed }) => [
                     styles.button,
                     pressed && styles.buttonPressed,
+                    loading && { opacity: 0.6 },
                   ]}
                 >
                   <Text style={styles.buttonText}>
-                    VALIDATE PASSWORD →
+                    {loading
+                      ? 'RESETTING...'
+                      : 'RESET PASSWORD →'}
                   </Text>
                 </Pressable>
 
@@ -173,6 +324,7 @@ export default function ResetPassword() {
                   <Text style={styles.cardSubtitle}>
                     Remember your password?
                   </Text>
+
                   <Link href="/" style={styles.textLink}>
                     Sign in
                   </Link>
