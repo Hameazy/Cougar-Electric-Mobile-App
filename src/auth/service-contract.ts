@@ -9,8 +9,12 @@ export type AuthErrorCode =
   | 'NOT_CONFIGURED'
   | 'EMAIL_IN_USE'
   | 'INVALID_CREDENTIALS'
+  | 'TOO_MANY_REQUESTS'
+  | 'USER_DISABLED'
   | 'VALIDATION_ERROR'
   | 'NETWORK_ERROR'
+  | 'PROFILE_SAVE_FAILED'
+  | 'SIGNED_IN_AS_DIFFERENT_USER'
   | 'UNKNOWN_ERROR';
 
 export class AuthServiceError extends Error {

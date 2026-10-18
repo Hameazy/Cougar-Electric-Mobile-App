@@ -1,5 +1,5 @@
-import { Link } from 'expo-router';
-import { useRef, useState } from 'react';
+import { Link, useRouter } from 'expo-router';
+import { useEffect, useRef, useState } from 'react';
 import {
   Keyboard,
   KeyboardAvoidingView,
@@ -18,13 +18,17 @@ import { TextBox } from '../parts/TextBox';
 import { styles } from '../styles/PageStyle';
 
 export default function SignIn() {
+  const router = useRouter();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [attempted, setAttempted] = useState(false);
   const [continued, setContinued] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [signingOut, setSigningOut] = useState(false);
+  const [sessionMessage, setSessionMessage] = useState('');
   const [passwordInputKey, setPasswordInputKey] = useState(0);
   const submittingRef = useRef(false);
+  const signingOutRef = useRef(false);
   const {
     message,
     locked,
@@ -32,6 +36,22 @@ export default function SignIn() {
     recordSuccess,
     clearMessage,
   } = useSignInAttempts(getAuthErrorMessage);
+
+  useEffect(() => {
+    let mounted = true;
+
+    authService.restoreSession()
+      .then((session) => {
+        if (mounted && session) setContinued(true);
+      })
+      .catch((error) => {
+        if (mounted) setSessionMessage(getAuthErrorMessage(error));
+      });
+
+    return () => {
+      mounted = false;
+    };
+  }, []);
 
   const emailError = !email.trim()
     ? 'Enter your email address.'
@@ -48,6 +68,7 @@ export default function SignIn() {
 
     Keyboard.dismiss();
     setAttempted(true);
+    setSessionMessage('');
     clearMessage();
 
     if (emailError || passwordError) return;
@@ -69,6 +90,29 @@ export default function SignIn() {
       setPasswordInputKey((key) => key + 1);
       submittingRef.current = false;
       setSubmitting(false);
+    }
+  }
+
+  async function submitSignOut() {
+    if (signingOutRef.current) return;
+
+    signingOutRef.current = true;
+    setSigningOut(true);
+    setSessionMessage('');
+
+    try {
+      await authService.signOut();
+      setContinued(false);
+      setAttempted(false);
+      setEmail('');
+      setPassword('');
+      clearMessage();
+      router.replace('/');
+    } catch (error) {
+      setSessionMessage(getAuthErrorMessage(error));
+    } finally {
+      signingOutRef.current = false;
+      setSigningOut(false);
     }
   }
 
@@ -145,16 +189,23 @@ export default function SignIn() {
                   Reliable electrical service, whenever you need it.
                 </Text>
 
+                <ErrorBanner message={sessionMessage} />
+
                 <Pressable
                   accessibilityRole="button"
-                  style={styles.button}
-                  onPress={() => {
-                    setContinued(false);
-                    setAttempted(false);
+                  accessibilityState={{
+                    disabled: signingOut,
+                    busy: signingOut,
                   }}
+                  disabled={signingOut}
+                  style={({ pressed }) => [
+                    styles.button,
+                    pressed && styles.buttonPressed,
+                  ]}
+                  onPress={submitSignOut}
                 >
                   <Text style={styles.buttonText}>
-                    BACK TO SIGN IN  →
+                    {signingOut ? 'SIGNING OUT…' : 'SIGN OUT   →'}
                   </Text>
                 </Pressable>
               </>
@@ -171,7 +222,7 @@ export default function SignIn() {
                   Welcome back. Enter your details to continue.
                 </Text>
 
-                <ErrorBanner message={message} />
+                <ErrorBanner message={sessionMessage || message} />
 
                 <View style={{ marginTop: 26 }}>
                   <TextBox
@@ -180,6 +231,7 @@ export default function SignIn() {
                     value={email}
                     onChangeText={(text) => {
                       setEmail(text);
+                      setSessionMessage('');
                       clearMessage();
                     }}
                     error={attempted ? emailError : undefined}
