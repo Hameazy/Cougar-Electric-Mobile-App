@@ -122,7 +122,7 @@ export default function ForgotPassword() {
             </Text>
 
             <Text style={styles.subtitle}>
-              Forgot your password? We'll help you get back to
+              Forgot your password? We’ll help you get back to
               managing your electrical services.
             </Text>
           </View>

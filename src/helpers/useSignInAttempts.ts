@@ -2,7 +2,9 @@
 import { useEffect, useState } from 'react';
 import { lockSecondsAfter, signInErrorMessage } from './SignInErrors';
 
-export function useSignInAttempts() {
+export function useSignInAttempts(
+  getErrorMessage: (error: unknown) => string = signInErrorMessage,
+) {
   const [failedAttempts, setFailedAttempts] = useState(0);
   const [secondsLeft, setSecondsLeft] = useState(0);
   const [message, setMessage] = useState('');
@@ -19,7 +21,7 @@ export function useSignInAttempts() {
     const lock = lockSecondsAfter(attempts);
     setFailedAttempts(lock ? 0 : attempts);
     setSecondsLeft(lock);
-    setMessage(lock ? '' : signInErrorMessage(error));
+    setMessage(lock ? '' : getErrorMessage(error));
   }
 
   function recordSuccess() {

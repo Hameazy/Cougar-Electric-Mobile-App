@@ -1,6 +1,5 @@
-
-import { Link } from 'expo-router';
-import { useState } from 'react';
+import { Link, useRouter } from 'expo-router';
+import { useEffect, useRef, useState } from 'react';
 import {
   Keyboard,
   KeyboardAvoidingView,
@@ -11,15 +10,48 @@ import {
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { authService, getAuthErrorMessage } from '../auth/service';
+import { useSignInAttempts } from '../helpers/useSignInAttempts';
+import { ErrorBanner } from '../parts/ErrorBanner';
 import { Logo } from '../parts/Logo';
 import { TextBox } from '../parts/TextBox';
 import { styles } from '../styles/PageStyle';
 
 export default function SignIn() {
+  const router = useRouter();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [attempted, setAttempted] = useState(false);
   const [continued, setContinued] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [signingOut, setSigningOut] = useState(false);
+  const [sessionMessage, setSessionMessage] = useState('');
+  const [passwordInputKey, setPasswordInputKey] = useState(0);
+  const submittingRef = useRef(false);
+  const signingOutRef = useRef(false);
+  const {
+    message,
+    locked,
+    recordFailure,
+    recordSuccess,
+    clearMessage,
+  } = useSignInAttempts(getAuthErrorMessage);
+
+  useEffect(() => {
+    let mounted = true;
+
+    authService.restoreSession()
+      .then((session) => {
+        if (mounted && session) setContinued(true);
+      })
+      .catch((error) => {
+        if (mounted) setSessionMessage(getAuthErrorMessage(error));
+      });
+
+    return () => {
+      mounted = false;
+    };
+  }, []);
 
   const emailError = !email.trim()
     ? 'Enter your email address.'
@@ -31,15 +63,60 @@ export default function SignIn() {
     ? 'Enter your password.'
     : undefined;
 
-  function submit() {
+  async function submit() {
+    if (submittingRef.current || locked) return;
+
     Keyboard.dismiss();
     setAttempted(true);
+    setSessionMessage('');
+    clearMessage();
 
     if (emailError || passwordError) return;
 
-    setPassword('');
-    setContinued(true);
+    submittingRef.current = true;
+    setSubmitting(true);
+
+    try {
+      await authService.signIn({
+        email: email.trim().toLowerCase(),
+        password,
+      });
+      recordSuccess();
+      setContinued(true);
+    } catch (error) {
+      recordFailure(error);
+    } finally {
+      setPassword('');
+      setPasswordInputKey((key) => key + 1);
+      submittingRef.current = false;
+      setSubmitting(false);
+    }
   }
+
+  async function submitSignOut() {
+    if (signingOutRef.current) return;
+
+    signingOutRef.current = true;
+    setSigningOut(true);
+    setSessionMessage('');
+
+    try {
+      await authService.signOut();
+      setContinued(false);
+      setAttempted(false);
+      setEmail('');
+      setPassword('');
+      clearMessage();
+      router.replace('/');
+    } catch (error) {
+      setSessionMessage(getAuthErrorMessage(error));
+    } finally {
+      signingOutRef.current = false;
+      setSigningOut(false);
+    }
+  }
+
+  const signInDisabled = submitting || locked;
 
   return (
     <SafeAreaView style={styles.safe}>
@@ -112,16 +189,23 @@ export default function SignIn() {
                   Reliable electrical service, whenever you need it.
                 </Text>
 
+                <ErrorBanner message={sessionMessage} />
+
                 <Pressable
                   accessibilityRole="button"
-                  style={styles.button}
-                  onPress={() => {
-                    setContinued(false);
-                    setAttempted(false);
+                  accessibilityState={{
+                    disabled: signingOut,
+                    busy: signingOut,
                   }}
+                  disabled={signingOut}
+                  style={({ pressed }) => [
+                    styles.button,
+                    pressed && styles.buttonPressed,
+                  ]}
+                  onPress={submitSignOut}
                 >
                   <Text style={styles.buttonText}>
-                    BACK TO SIGN IN  →
+                    {signingOut ? 'SIGNING OUT…' : 'SIGN OUT   →'}
                   </Text>
                 </Pressable>
               </>
@@ -138,12 +222,18 @@ export default function SignIn() {
                   Welcome back. Enter your details to continue.
                 </Text>
 
+                <ErrorBanner message={sessionMessage || message} />
+
                 <View style={{ marginTop: 26 }}>
                   <TextBox
                     label="Email address"
                     placeholder="you@example.com"
                     value={email}
-                    onChangeText={setEmail}
+                    onChangeText={(text) => {
+                      setEmail(text);
+                      setSessionMessage('');
+                      clearMessage();
+                    }}
                     error={attempted ? emailError : undefined}
                     keyboardType="email-address"
                     autoComplete="email"
@@ -153,10 +243,14 @@ export default function SignIn() {
                   />
 
                   <TextBox
+                    key={passwordInputKey}
                     label="Password"
                     placeholder="Enter your password"
                     value={password}
-                    onChangeText={setPassword}
+                    onChangeText={(text) => {
+                      setPassword(text);
+                      clearMessage();
+                    }}
                     error={attempted ? passwordError : undefined}
                     password
                     autoComplete="current-password"
@@ -170,6 +264,11 @@ export default function SignIn() {
 
                 <Pressable
                   accessibilityRole="button"
+                  accessibilityState={{
+                    disabled: signInDisabled,
+                    busy: submitting,
+                  }}
+                  disabled={signInDisabled}
                   onPress={submit}
                   style={({ pressed }) => [
                     styles.button,
@@ -177,11 +276,14 @@ export default function SignIn() {
                   ]}
                 >
                   <Text style={styles.buttonText}>
-                    SIGN IN   →
+                    {submitting
+                      ? 'SIGNING IN…'
+                      : locked
+                        ? 'PLEASE WAIT…'
+                        : 'SIGN IN   →'}
                   </Text>
                 </Pressable>
 
-                {/* Navigate to the password recovery screen */}
                 <View style={{ alignItems: 'flex-end', marginTop: 16 }}>
                   <Link
                     href="/forgot-password"

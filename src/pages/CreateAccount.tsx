@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { Link } from 'expo-router';
 import { styles } from '../styles/PageStyle';
 import { Logo } from '../parts/Logo';
@@ -6,7 +5,8 @@ import { useRef, useState } from 'react';
 import { Keyboard, KeyboardAvoidingView, Platform, Pressable, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { TextBox } from '../parts/TextBox';
-import { validateRegistration, type Errors, type Registration } from '../helpers/AccountHelp';
+import { authService, getAuthErrorMessage } from '../auth/service';
+import { createRegistrationRequest, validateRegistration, type Errors, type Registration } from '../helpers/AccountHelp';
 
 const emptyForm: Registration = { fullName: '', email: '', phone: '', address: '', city: '', state: '', zip: '', password: '', confirmPassword: '' };
 
@@ -16,6 +16,8 @@ export default function CreateAccount() {
   const [attempted, setAttempted] = useState(false);
   const [message, setMessage] = useState('');
   const [success, setSuccess] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const submittingRef = useRef(false);
   const scroll = useRef<ScrollView>(null);
 
   const change = (key: keyof Registration) => (text: string) => {
@@ -25,7 +27,8 @@ export default function CreateAccount() {
     setMessage('');
   };
 
-  function submit() {
+  async function submit() {
+    if (submittingRef.current) return;
     Keyboard.dismiss();
     setAttempted(true);
     const validation = validateRegistration(values);
@@ -36,9 +39,21 @@ export default function CreateAccount() {
       scroll.current?.scrollTo({ y: 0, animated: true });
       return;
     }
-    setValues(emptyForm);
-    setSuccess(true);
-    scroll.current?.scrollTo({ y: 0, animated: true });
+    submittingRef.current = true;
+    setSubmitting(true);
+    try {
+      await authService.register(createRegistrationRequest(values));
+      setValues(emptyForm);
+      setErrors({});
+      setSuccess(true);
+      scroll.current?.scrollTo({ y: 0, animated: true });
+    } catch (error) {
+      setMessage(getAuthErrorMessage(error));
+      scroll.current?.scrollTo({ y: 0, animated: true });
+    } finally {
+      submittingRef.current = false;
+      setSubmitting(false);
+    }
   }
 
   const field = (key: keyof Registration) => ({ value: values[key], onChangeText: change(key), error: errors[key] });
@@ -86,8 +101,8 @@ export default function CreateAccount() {
               <Text accessibilityRole="header" style={styles.section}>03   SECURE YOUR ACCOUNT</Text>
               <TextBox label="Password" placeholder="Create a password" password autoCapitalize="none" autoCorrect={false} autoComplete="new-password" textContentType="newPassword" hint="Use at least 12 characters." {...field('password')} />
               <TextBox label="Confirm password" placeholder="Enter your password again" password autoCapitalize="none" autoCorrect={false} autoComplete="new-password" textContentType="newPassword" {...field('confirmPassword')} />
-              <Pressable accessibilityRole="button" onPress={submit} style={({ pressed }) => [styles.button, pressed && styles.buttonPressed]}>
-                <Text style={styles.buttonText}>CREATE ACCOUNT   →</Text>
+              <Pressable accessibilityRole="button" accessibilityState={{ disabled: submitting, busy: submitting }} disabled={submitting} onPress={submit} style={({ pressed }) => [styles.button, pressed && styles.buttonPressed]}>
+                <Text style={styles.buttonText}>{submitting ? 'CREATING ACCOUNT…' : 'CREATE ACCOUNT   →'}</Text>
               </Pressable>
               <View style={styles.accountLink}><Text style={styles.cardSubtitle}>Already have an account?</Text><Link href="/" replace style={styles.textLink}>Sign in</Link></View>
             </View>
