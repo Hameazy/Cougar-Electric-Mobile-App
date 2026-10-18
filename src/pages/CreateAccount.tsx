@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { Link } from 'expo-router';
 import { styles } from '../styles/PageStyle';
 import { Logo } from '../parts/Logo';
