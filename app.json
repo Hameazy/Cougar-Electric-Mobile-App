@@ -22,7 +22,15 @@
       "favicon": "./assets/favicon.png"
     },
     "plugins": [
-      "expo-router"
+      "expo-router",
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Cougar Electric uses your photos so you can show the electrician the problem.",
+          "cameraPermission": "Cougar Electric uses your camera so you can take a photo or video of the electrical problem.",
+          "microphonePermission": "Cougar Electric uses your microphone when you record a video of the problem."
+        }
+      ]
     ]
   }
 }
