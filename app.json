@@ -24,6 +24,12 @@
     "plugins": [
       "expo-router",
       [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "Allow Cougar Electric to use your location to find the service address."
+        }
+      ],
+      [
         "expo-image-picker",
         {
           "photosPermission": "Cougar Electric uses your photos so you can show the electrician the problem.",
