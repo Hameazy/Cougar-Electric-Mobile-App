@@ -1,27 +1,34 @@
-import { router } from 'expo-router';
+import { Link, router } from 'expo-router';
 import { useState } from 'react';
 import { Keyboard, KeyboardAvoidingView, Platform, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { validateIssueDescription } from '../helpers/ServiceRequestValidation';
+import { useServiceRequestDraft } from '../serviceRequests/ServiceRequestDraftProvider';
 import { Logo } from '../parts/Logo';
 import { styles } from '../styles/PageStyle';
 
 const MAX_DESCRIPTION_LENGTH = 500;
 
 export default function EmergencyDescription() {
-  const [description, setDescription] = useState('');
+  const { draft, setDescription: saveDescription } = useServiceRequestDraft();
+  const [description, setDescription] = useState(draft.description);
+  const saved = !!draft.description && description === draft.description;
   const [attempted, setAttempted] = useState(false);
   const error = attempted ? validateIssueDescription(description) : undefined;
+
+  function saveInformation() {
+    Keyboard.dismiss();
+    setAttempted(true);
+    if (validateIssueDescription(description)) return;
+    saveDescription(description);
+  }
 
   function continueToLocation() {
     Keyboard.dismiss();
     setAttempted(true);
-    if (validateIssueDescription(description)) return;
+    if (!saved || validateIssueDescription(description)) return;
 
-    router.push({
-      pathname: '/emergency-location',
-      params: { description: description.trim() },
-    });
+    router.push('/emergency-location');
   }
 
   return (
@@ -29,7 +36,7 @@ export default function EmergencyDescription() {
       <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
         <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
           <View style={styles.topline}>
-            <Text style={styles.toplineText}>EMERGENCY SERVICE REQUEST</Text>
+            <Link href="/choose-electrical-issue" style={styles.textLink}>← Back</Link>
             <Text style={styles.step}>STEP 1 OF 2</Text>
           </View>
           <Logo />
@@ -59,8 +66,14 @@ export default function EmergencyDescription() {
               <Text accessibilityRole="alert" accessibilityLiveRegion="polite" style={styles.descriptionError}>{error || ' '}</Text>
               <Text style={styles.characterCount}>{description.length}/{MAX_DESCRIPTION_LENGTH}</Text>
             </View>
-            <Pressable accessibilityRole="button" accessibilityState={{ disabled: false }} onPress={continueToLocation} style={({ pressed }) => [styles.button, pressed && styles.buttonPressed]}>
-              <Text style={styles.buttonText}>CONTINUE TO LOCATION  →</Text>
+            <Text accessibilityLiveRegion="polite" style={[styles.cardSubtitle, { marginBottom: 12 }]}>
+              {saved ? 'Information saved for this request.' : 'Save your information before continuing. Changes are not saved automatically.'}
+            </Text>
+            <Pressable accessibilityRole="button" onPress={saveInformation} style={({ pressed }) => [styles.button, pressed && styles.buttonPressed]}>
+              <Text style={styles.buttonText}>SAVE INFORMATION</Text>
+            </Pressable>
+            <Pressable accessibilityRole="button" disabled={!saved} accessibilityState={{ disabled: !saved }} onPress={continueToLocation} style={({ pressed }) => [styles.locationButton, { marginTop: 12, opacity: saved ? 1 : 0.5 }, pressed && styles.buttonPressed]}>
+              <Text style={styles.locationButtonText}>CONTINUE TO LOCATION  →</Text>
             </Pressable>
           </View>
           <Text style={styles.footer}>COUGAR ELECTRIC INC.  ·  EMERGENCY REQUEST</Text>

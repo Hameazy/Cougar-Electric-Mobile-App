@@ -1,9 +1,10 @@
 import * as Location from 'expo-location';
-import { Link, useLocalSearchParams } from 'expo-router';
+import { Link } from 'expo-router';
 import { useState } from 'react';
 import { Keyboard, KeyboardAvoidingView, Platform, Pressable, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { validateServiceLocation, type LocationErrors } from '../helpers/ServiceRequestValidation';
+import { useServiceRequestDraft } from '../serviceRequests/ServiceRequestDraftProvider';
 import { Logo } from '../parts/Logo';
 import { TextBox } from '../parts/TextBox';
 import { styles } from '../styles/PageStyle';
@@ -12,8 +13,8 @@ import type { ServiceLocation } from '../serviceRequests/types';
 const emptyLocation: ServiceLocation = { address: '', city: '', state: '', zip: '' };
 
 export default function EmergencyLocation() {
-  const { description } = useLocalSearchParams<{ description?: string }>();
-  const [location, setLocation] = useState(emptyLocation);
+  const { draft, setLocation: saveLocation } = useServiceRequestDraft();
+  const [location, setLocation] = useState(draft.location ?? emptyLocation);
   const [errors, setErrors] = useState<LocationErrors>({});
   const [attempted, setAttempted] = useState(false);
   const [message, setMessage] = useState('');
@@ -60,6 +61,7 @@ export default function EmergencyLocation() {
     const validation = validateServiceLocation(location);
     setErrors(validation);
     if (Object.keys(validation).length) return;
+    saveLocation(location);
     setMessage('Location saved for this service request.');
   }
 
@@ -68,7 +70,7 @@ export default function EmergencyLocation() {
       <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
         <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
           <View style={styles.topline}>
-            <Link href={{ pathname: '/emergency-description', params: { description } }} style={styles.textLink}>← Back</Link>
+            <Link href={draft.issueType === 'Other electrical issue' ? '/emergency-description' : '/choose-electrical-issue'} style={styles.textLink}>← Back</Link>
             <Text style={styles.step}>STEP 2 OF 2</Text>
           </View>
           <Logo />
