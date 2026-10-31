@@ -39,4 +39,12 @@ export const styles = StyleSheet.create({
   notice: { padding: 14, borderRadius: 10, backgroundColor: '#301B20', marginTop: 20 },
   noticeText: { color: '#FFB1A8', fontSize: 14, lineHeight: 21 },
   successIcon: { fontSize: 36, color: '#F5B900', marginBottom: 16 },
+  descriptionField: { borderWidth: 1, borderColor: '#3A4250', borderRadius: 12, backgroundColor: '#0A101B', marginTop: 24 },
+  descriptionInput: { minHeight: 170, padding: 14, color: '#F8FAFC', fontSize: 16, lineHeight: 24 },
+  descriptionInputInvalid: { borderColor: '#FF9A91' },
+  descriptionMeta: { flexDirection: 'row', justifyContent: 'space-between', minHeight: 28, marginTop: 7 },
+  descriptionError: { flex: 1, color: '#FF9A91', fontSize: 12, lineHeight: 18 },
+  characterCount: { color: '#99A7BC', fontSize: 12, lineHeight: 18 },
+  locationButton: { minHeight: 50, borderRadius: 12, borderWidth: 1, borderColor: '#F5B900', alignItems: 'center', justifyContent: 'center', marginTop: 22, paddingHorizontal: 14 },
+  locationButtonText: { color: '#F5B900', letterSpacing: 0.8, fontSize: 13, fontWeight: '700' },
 });
