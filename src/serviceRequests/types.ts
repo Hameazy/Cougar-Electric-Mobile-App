@@ -1,3 +1,5 @@
+import type { ElectricalIssue } from '../helpers/CommonElectricalProblems';
+
 export type ServiceLocation = {
   address: string;
   city: string;
@@ -8,6 +10,7 @@ export type ServiceLocation = {
 };
 
 export type ServiceRequestDraft = {
+  issueType: ElectricalIssue | null;
   description: string;
   location?: ServiceLocation;
 };

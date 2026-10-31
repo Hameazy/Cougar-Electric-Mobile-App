@@ -1,15 +1,9 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
-export const ELECTRICAL_ISSUES = [
-  'Power outage',
-  'Outlet not working',
-  'Circuit breaker issue',
-  'Electrical wiring problem',
-  'Flickering lights',
-  'Other electrical issue',
-] as const;
+import { ELECTRICAL_ISSUES, ELECTRICAL_ISSUE_DESCRIPTIONS, type ElectricalIssue } from '../helpers/CommonElectricalProblems';
 
-export type ElectricalIssue = (typeof ELECTRICAL_ISSUES)[number];
+// Preserve the public exports used by the selection workflow.
+export { ELECTRICAL_ISSUES, type ElectricalIssue } from '../helpers/CommonElectricalProblems';
 
 export type ElectricalIssueSelectorProps = {
   selectedIssue: ElectricalIssue | null;
@@ -26,6 +20,8 @@ export default function ElectricalIssueSelector({
         What electrical issue are you experiencing?
       </Text>
 
+      <Text style={styles.subtitle}>Choose the one that best matches your problem.</Text>
+
       <View
         accessibilityLabel="Electrical issue"
         accessibilityRole="radiogroup"
@@ -37,7 +33,7 @@ export default function ElectricalIssueSelector({
           return (
             <Pressable
               key={issue}
-              accessibilityLabel={issue}
+              accessibilityLabel={`${issue}. ${ELECTRICAL_ISSUE_DESCRIPTIONS[issue]}`}
               accessibilityRole="radio"
               accessibilityState={{ checked: isSelected }}
               onPress={() => onSelectIssue(issue)}
@@ -47,14 +43,17 @@ export default function ElectricalIssueSelector({
                 pressed && styles.pressedOption,
               ]}
             >
-              <Text
-                style={[
-                  styles.optionText,
-                  isSelected && styles.selectedOptionText,
-                ]}
-              >
-                {issue}
-              </Text>
+              <View style={styles.optionContent}>
+                <Text
+                  style={[
+                    styles.optionText,
+                    isSelected && styles.selectedOptionText,
+                  ]}
+                >
+                  {issue}
+                </Text>
+                <Text style={styles.optionDescription}>{ELECTRICAL_ISSUE_DESCRIPTIONS[issue]}</Text>
+              </View>
               <View
                 accessible={false}
                 style={[
@@ -80,7 +79,22 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontSize: 23,
     fontWeight: '700',
+    marginBottom: 8,
+  },
+  subtitle: {
+    color: '#B9C3D2',
+    fontSize: 14,
+    lineHeight: 21,
     marginBottom: 18,
+  },
+  optionContent: {
+    flex: 1,
+    gap: 4,
+  },
+  optionDescription: {
+    color: '#B9C3D2',
+    fontSize: 14,
+    lineHeight: 20,
   },
   options: {
     gap: 12,
@@ -106,7 +120,6 @@ const styles = StyleSheet.create({
   },
   optionText: {
     color: '#E0E5EF',
-    flex: 1,
     fontSize: 16,
     lineHeight: 22,
   },
