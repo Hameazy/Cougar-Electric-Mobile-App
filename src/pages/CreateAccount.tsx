@@ -2,7 +2,7 @@ import { Link } from 'expo-router';
 import { styles } from '../styles/PageStyle';
 import { Logo } from '../parts/Logo';
 import { useRef, useState } from 'react';
-import { Keyboard, KeyboardAvoidingView, Platform, Pressable, ScrollView, Text, View } from 'react-native';
+import { Keyboard, KeyboardAvoidingView, Platform, Pressable, ScrollView, Text, View, type ScrollViewInstance } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { TextBox } from '../parts/TextBox';
 import { authService, getAuthErrorMessage } from '../auth/service';
@@ -18,7 +18,7 @@ export default function CreateAccount() {
   const [success, setSuccess] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const submittingRef = useRef(false);
-  const scroll = useRef<ScrollView>(null);
+  const scroll = useRef<ScrollViewInstance>(null);
 
   const change = (key: keyof Registration) => (text: string) => {
     const next = { ...values, [key]: text };
