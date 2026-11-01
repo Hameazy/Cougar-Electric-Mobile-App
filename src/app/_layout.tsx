@@ -2,6 +2,7 @@
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { createElement } from 'react';
+import { ServiceRequestDraftProvider } from '../serviceRequests/ServiceRequestDraftProvider';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 export default function RootLayout() {
@@ -9,8 +10,12 @@ export default function RootLayout() {
     SafeAreaProvider,
     null,
     createElement(StatusBar, { style: 'light' }),
-    createElement(Stack, {
-      screenOptions: { headerShown: false, contentStyle: { backgroundColor: '#070B13' } },
-    }),
+    createElement(
+      ServiceRequestDraftProvider,
+      null,
+      createElement(Stack, {
+        screenOptions: { headerShown: false, contentStyle: { backgroundColor: '#070B13' } },
+      }),
+    ),
   );
 }
