@@ -6,6 +6,13 @@ import {
   runTransaction,
   serverTimestamp,
 } from 'firebase/firestore';
+import {
+  getDownloadURL,
+  getStorage,
+  ref as storageRef,
+  uploadBytes,
+} from 'firebase/storage';
+import type { Attachment } from '../helpers/AttachmentRules';
 import { auth } from '../../firebaseConfig';
 import { app } from '../../firebaseApp';
 import {
@@ -14,6 +21,29 @@ import {
 } from './validation';
 
 const db = getFirestore(app);
+const storage = getStorage(app);
+
+// Upload with a stable path so a retry overwrites instead of duplicating files.
+async function uploadAttachments(
+  files: Attachment[],
+  customerId: string,
+  requestId: string,
+): Promise<string[]> {
+  return Promise.all(
+    files.map(async (file, index) => {
+      const safeName = file.fileName.replace(/[^\w.-]/g, '_');
+      const fileRef = storageRef(
+        storage,
+        `serviceRequests/${customerId}/${requestId}/${index}-${safeName}`,
+      );
+      const blob = await (await fetch(file.uri)).blob();
+      await uploadBytes(fileRef, blob, {
+        contentType: file.mimeType ?? blob.type ?? undefined,
+      });
+      return getDownloadURL(fileRef);
+    }),
+  );
+}
 
 export const SERVICE_REQUESTS_COLLECTION = 'serviceRequests';
 
@@ -27,6 +57,7 @@ export function createServiceRequestId(): string {
 export async function submitServiceRequest(
   request: ServiceRequestInput,
   requestId: string,
+  files: Attachment[] = [],
 ): Promise<string> {
   const errors = validateServiceRequest(request);
 
@@ -47,6 +78,17 @@ export async function submitServiceRequest(
   const requestRef = doc(db, SERVICE_REQUESTS_COLLECTION, requestId);
 
   try {
+    let attachmentUrls = request.attachments ?? [];
+    if (files.length > 0) {
+      try {
+        attachmentUrls = await uploadAttachments(files, customer.uid, requestId);
+      } catch {
+        throw new Error(
+          'We could not upload your photos or videos. Please try again.',
+        );
+      }
+    }
+
     await runTransaction(db, async (transaction) => {
       const existingRequest = await transaction.get(requestRef);
 
@@ -67,7 +109,10 @@ export async function submitServiceRequest(
         city: request.city.trim(),
         state: request.state.trim().toUpperCase(),
         zip: request.zip.trim(),
-        attachments: request.attachments ?? [],
+        ...(request.latitude !== undefined && request.longitude !== undefined
+          ? { latitude: request.latitude, longitude: request.longitude }
+          : {}),
+        attachments: attachmentUrls,
         status: 'pending',
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp(),
@@ -95,7 +140,8 @@ export async function submitServiceRequest(
 
     if (
       error instanceof Error &&
-      error.message === 'This service request ID is already in use.'
+      (error.message === 'This service request ID is already in use.' ||
+        error.message.startsWith('We could not upload'))
     ) {
       throw error;
     }

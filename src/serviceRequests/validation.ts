@@ -7,6 +7,8 @@ export type ServiceRequestInput = {
   city: string;
   state: string;
   zip: string;
+  latitude?: number;
+  longitude?: number;
   attachments?: string[];
 };
 

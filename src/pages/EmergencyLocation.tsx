@@ -1,5 +1,5 @@
 import * as Location from 'expo-location';
-import { Link } from 'expo-router';
+import { Link, router } from 'expo-router';
 import { useState } from 'react';
 import { Keyboard, KeyboardAvoidingView, Platform, Pressable, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -62,7 +62,7 @@ export default function EmergencyLocation() {
     setErrors(validation);
     if (Object.keys(validation).length) return;
     saveLocation(location);
-    setMessage('Location saved for this service request.');
+    router.push('/review-request');
   }
 
   return (
@@ -95,7 +95,7 @@ export default function EmergencyLocation() {
               </View>
             </View>
             <Pressable accessibilityRole="button" onPress={continueFromLocation} style={({ pressed }) => [styles.button, pressed && styles.buttonPressed]}>
-              <Text style={styles.buttonText}>SAVE LOCATION  →</Text>
+              <Text style={styles.buttonText}>REVIEW REQUEST  →</Text>
             </Pressable>
           </View>
           <Text style={styles.footer}>COUGAR ELECTRIC INC.  ·  EMERGENCY REQUEST</Text>
