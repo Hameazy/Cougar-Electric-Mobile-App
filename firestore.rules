@@ -26,6 +26,32 @@ service cloud.firestore {
       allow delete: if false;
     }
 
+    // Emergency service requests: customers create and read their own; requests are
+    // always created as 'pending' and can't be edited or deleted from the app.
+    match /serviceRequests/{requestId} {
+      allow read: if request.auth != null && resource.data.customerId == request.auth.uid;
+      allow create: if request.auth != null
+        && request.resource.data.customerId == request.auth.uid
+        && validServiceRequest(request.resource.data)
+        && request.resource.data.status == 'pending'
+        && request.resource.data.createdAt == request.time
+        && request.resource.data.updatedAt == request.time;
+      allow update, delete: if false;
+    }
+
+    function validServiceRequest(data) {
+      let required = ['customerId', 'issueType', 'description', 'address', 'city', 'state', 'zip', 'attachments', 'status', 'createdAt', 'updatedAt'];
+      return data.keys().hasAll(required)
+        && data.keys().hasOnly(required.concat(['latitude', 'longitude']))
+        && data.issueType is string && data.issueType.size() > 0 && data.issueType.size() <= 100
+        && data.description is string && data.description.size() >= 1 && data.description.size() <= 500
+        && data.address is string && data.address.size() > 0 && data.address.size() <= 200
+        && data.city is string && data.city.size() > 0 && data.city.size() <= 100
+        && data.state is string && data.state.matches('[A-Z]{2}')
+        && data.zip is string && data.zip.matches('[0-9]{5}(-[0-9]{4})?')
+        && data.attachments is list && data.attachments.size() <= 5;
+    }
+
     function isOwner(customerId) {
       return request.auth != null && request.auth.uid == customerId;
     }

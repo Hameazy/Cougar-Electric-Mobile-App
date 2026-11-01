@@ -1,0 +1,15 @@
+rules_version = '2';
+
+// Service request photos/videos: customers can only write and read their own folder.
+service firebase.storage {
+  match /b/{bucket}/o {
+    match /serviceRequests/{customerId}/{requestId}/{fileName} {
+      allow read: if request.auth != null && request.auth.uid == customerId;
+      allow create, update: if request.auth != null
+        && request.auth.uid == customerId
+        && (request.resource.contentType.matches('image/.*') || request.resource.contentType.matches('video/.*'))
+        && request.resource.size <= 50 * 1024 * 1024;
+      allow delete: if false;
+    }
+  }
+}

@@ -7,6 +7,7 @@ import {
   Text,
   View,
 } from 'react-native';
+import type { Attachment } from '../helpers/AttachmentRules';
 import { ErrorBanner } from '../parts/ErrorBanner';
 import {
   createServiceRequestId,
@@ -19,11 +20,13 @@ import {
 
 type SubmitServiceRequestProps = {
   request: ServiceRequestInput;
+  files?: Attachment[];
   onSuccess?: (requestId: string) => void;
 };
 
 export function SubmitServiceRequest({
   request,
+  files,
   onSuccess,
 }: SubmitServiceRequestProps) {
   const requestId = useRef<string | null>(null);
@@ -60,6 +63,7 @@ export function SubmitServiceRequest({
       const savedId = await submitServiceRequest(
         request,
         requestId.current,
+        files,
       );
 
       setSubmittedId(savedId);
