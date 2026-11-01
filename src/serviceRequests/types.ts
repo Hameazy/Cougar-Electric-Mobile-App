@@ -1,3 +1,4 @@
+import type { Attachment } from '../helpers/AttachmentRules';
 import type { ElectricalIssue } from '../helpers/CommonElectricalProblems';
 
 export type ServiceLocation = {
@@ -13,4 +14,6 @@ export type ServiceRequestDraft = {
   issueType: ElectricalIssue | null;
   description: string;
   location?: ServiceLocation;
+  // photos/videos picked on the description screen (still on the phone, not uploaded yet)
+  attachments: Attachment[];
 };

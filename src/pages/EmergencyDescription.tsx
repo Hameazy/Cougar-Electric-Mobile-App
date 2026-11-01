@@ -4,13 +4,14 @@ import { Keyboard, KeyboardAvoidingView, Platform, Pressable, ScrollView, Text, 
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { validateIssueDescription } from '../helpers/ServiceRequestValidation';
 import { useServiceRequestDraft } from '../serviceRequests/ServiceRequestDraftProvider';
+import { AttachmentPicker } from '../parts/AttachmentPicker';
 import { Logo } from '../parts/Logo';
 import { styles } from '../styles/PageStyle';
 
 const MAX_DESCRIPTION_LENGTH = 500;
 
 export default function EmergencyDescription() {
-  const { draft, setDescription: saveDescription } = useServiceRequestDraft();
+  const { draft, setDescription: saveDescription, setAttachments } = useServiceRequestDraft();
   const [description, setDescription] = useState(draft.description);
   const saved = !!draft.description && description === draft.description;
   const [attempted, setAttempted] = useState(false);
@@ -65,6 +66,10 @@ export default function EmergencyDescription() {
             <View style={styles.descriptionMeta}>
               <Text accessibilityRole="alert" accessibilityLiveRegion="polite" style={styles.descriptionError}>{error || ' '}</Text>
               <Text style={styles.characterCount}>{description.length}/{MAX_DESCRIPTION_LENGTH}</Text>
+            </View>
+            {/* optional photos/video -- kept in the draft right away so going back doesn't lose them */}
+            <View style={{ marginTop: 12, marginBottom: 22 }}>
+              <AttachmentPicker value={draft.attachments} onChange={setAttachments} />
             </View>
             <Text accessibilityLiveRegion="polite" style={[styles.cardSubtitle, { marginBottom: 12 }]}>
               {saved ? 'Information saved for this request.' : 'Save your information before continuing. Changes are not saved automatically.'}
