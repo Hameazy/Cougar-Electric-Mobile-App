@@ -1,44 +1,36 @@
 import { Link, router } from 'expo-router';
-import { Pressable, ScrollView, Text, View } from 'react-native';
+import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import ElectricalIssueSelector from '../parts/ElectricalIssueSelector';
-import { canContinueWithIssue } from '../serviceRequests/validateIssueSelection';
-import { Logo } from '../parts/Logo';
 import { useServiceRequestDraft } from '../serviceRequests/ServiceRequestDraftProvider';
 import { styles } from '../styles/PageStyle';
 
 export default function ChooseElectricalIssue() {
   const { draft, setIssueType } = useServiceRequestDraft();
-  const canContinue = canContinueWithIssue(draft);
   return (
     <SafeAreaView style={styles.safe}>
-      <ScrollView contentContainerStyle={styles.content}>
-        <Logo />
-        <View style={styles.hero}>
-          <Text style={styles.eyebrow}>SERVICE REQUEST</Text>
-          <Text accessibilityRole="header" style={styles.title}>Tell us what’s wrong.</Text>
+      <ScrollView contentContainerStyle={issueStyles.content}>
+        <View style={issueStyles.header}>
+          <Link href="/dashboard" accessibilityLabel="Back to dashboard" style={issueStyles.back}>‹</Link>
+          <Text accessibilityRole="header" style={issueStyles.title}>What is the problem?</Text>
         </View>
-        <View style={styles.card}>
-          <ElectricalIssueSelector selectedIssue={draft.issueType} onSelectIssue={(issue) => {
+        <Text style={issueStyles.subtitle}>Select the issue that best describes your electrical problem.</Text>
+        <ElectricalIssueSelector
+          selectedIssue={draft.issueType}
+          onSelectIssue={(issue) => {
             setIssueType(issue);
-            if (issue === 'Other electrical issue') router.push('/emergency-description');
-          }} />
-          {draft.issueType && draft.issueType !== 'Other electrical issue' && (
-            <Link href="/emergency-description" style={[styles.textLink, { marginTop: 20 }]}>Add or edit details →</Link>
-          )}
-          {!canContinue && <Text style={styles.cardSubtitle}>{draft.issueType ? 'Save a description for Other electrical issue before continuing.' : 'Choose an electrical issue before continuing.'}</Text>}
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel="Next: choose location"
-            accessibilityState={{ disabled: !canContinue }}
-            disabled={!canContinue}
-            onPress={() => router.push('/emergency-location')}
-            style={({ pressed }) => [styles.button, { marginTop: 24, minHeight: 56 }, !canContinue && { opacity: 0.5 }, pressed && styles.buttonPressed]}
-          >
-            <Text style={styles.buttonText}>NEXT: CHOOSE LOCATION  →</Text>
-          </Pressable>
-        </View>
+            router.push('/emergency-description');
+          }}
+        />
       </ScrollView>
     </SafeAreaView>
   );
 }
+
+const issueStyles = StyleSheet.create({
+  content: { alignSelf: 'center', maxWidth: 600, padding: 22, paddingBottom: 40, width: '100%' },
+  header: { alignItems: 'center', flexDirection: 'row', marginBottom: 24, marginTop: 4 },
+  back: { backgroundColor: '#172033', borderRadius: 11, color: '#F8FAFC', fontSize: 30, height: 42, lineHeight: 38, marginRight: 12, overflow: 'hidden', textAlign: 'center', width: 42 },
+  title: { color: '#F8FAFC', flex: 1, fontSize: 20, fontWeight: '800' },
+  subtitle: { color: '#8997AC', fontSize: 13, lineHeight: 19, marginBottom: 18 },
+});

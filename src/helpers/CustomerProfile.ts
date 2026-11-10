@@ -2,7 +2,7 @@
 // Firestore doesn't force a structure on its own, so this type plus firestore.rules is our "schema".
 import { doc, getDoc, getFirestore, serverTimestamp, setDoc } from 'firebase/firestore';
 import { app } from '../../firebaseApp';
-import type { RegistrationRequest } from '../auth/types';
+import type { RegistrationRequest } from '../auth/AuthenticationTypes';
 
 export const CUSTOMERS_COLLECTION = 'customers';
 

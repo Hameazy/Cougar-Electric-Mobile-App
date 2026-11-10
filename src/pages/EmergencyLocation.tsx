@@ -3,12 +3,12 @@ import { Link, router } from 'expo-router';
 import { useState } from 'react';
 import { Keyboard, KeyboardAvoidingView, Platform, Pressable, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { validateServiceLocation, type LocationErrors } from '../helpers/ServiceRequestValidation';
+import { validateServiceLocation, type LocationErrors } from '../helpers/validateServiceRequestDetails';
 import { useServiceRequestDraft } from '../serviceRequests/ServiceRequestDraftProvider';
 import { Logo } from '../parts/Logo';
 import { TextBox } from '../parts/TextBox';
 import { styles } from '../styles/PageStyle';
-import type { ServiceLocation } from '../serviceRequests/types';
+import type { ServiceLocation } from '../serviceRequests/ServiceRequestTypes';
 
 const emptyLocation: ServiceLocation = { address: '', city: '', state: '', zip: '' };
 
@@ -70,8 +70,8 @@ export default function EmergencyLocation() {
       <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
         <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
           <View style={styles.topline}>
-            <Link href={draft.issueType === 'Other electrical issue' ? '/emergency-description' : '/choose-electrical-issue'} style={styles.textLink}>← Back</Link>
-            <Text style={styles.step}>STEP 2 OF 2</Text>
+            <Link href="/emergency-description" style={styles.textLink}>← Back</Link>
+            <Text style={styles.step}>SERVICE LOCATION</Text>
           </View>
           <Logo />
           <View style={styles.hero}>

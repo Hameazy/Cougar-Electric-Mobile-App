@@ -1,2 +1,2 @@
-// The app opens the SignIn page first. Expo Router needs this filename.
-export { default } from '../pages/SignIn';
+// The customer dashboard is public; authentication is optional until needed.
+export { default } from '../pages/CustomerDashboard';

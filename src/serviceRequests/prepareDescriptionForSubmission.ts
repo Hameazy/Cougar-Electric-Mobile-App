@@ -1,5 +1,5 @@
-import type { ServiceRequestDraft } from './types';
-import type { ServiceRequestInput } from './validation';
+import type { ServiceRequestDraft } from './ServiceRequestTypes';
+import type { ServiceRequestInput } from './validateServiceRequestSubmission';
 
 // Preserve the customer's text while editing; normalize only the submission copy.
 export function withDraftDescription(

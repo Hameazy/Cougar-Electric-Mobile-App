@@ -10,12 +10,12 @@ import {
   AuthServiceError,
   type AuthErrorCode,
   type AuthService,
-} from './service-contract';
+} from './AuthenticationServiceContract';
 import { createCustomerProfile } from '../helpers/CustomerProfile';
-import type { AuthSession, AuthUser } from './types';
+import type { AuthSession, AuthUser } from './AuthenticationTypes';
 
 const messages = {
-  NOT_CONFIGURED: 'Account services are currently unavailable. Please try again later.',
+  NOT_CONFIGURED: 'This app is not connected to the Firebase project for customer accounts. Update the Firebase settings and restart the app.',
   EMAIL_IN_USE: 'An account with this email already exists. Please sign in or use a different email.',
   INVALID_CREDENTIALS: 'The email or password is incorrect. Please try again.',
   TOO_MANY_REQUESTS: 'Too many sign-in attempts. Please wait a few minutes and try again.',
@@ -63,11 +63,21 @@ function firebaseErrorCode(error: unknown): AuthErrorCode {
       return 'NETWORK_ERROR';
     case 'auth/app-not-authorized':
     case 'auth/auth-domain-config-required':
+    case 'auth/configuration-not-found':
     case 'auth/invalid-api-key':
+    case 'auth/invalid-app-credential':
     case 'auth/operation-not-allowed':
+    case 'auth/unauthorized-domain':
       return 'NOT_CONFIGURED';
     default:
       return 'UNKNOWN_ERROR';
+  }
+}
+
+function assertAccountProjectConfigured() {
+  const projectId = auth.app.options.projectId;
+  if (!projectId || projectId.startsWith('demo-')) {
+    throw new AuthServiceError('NOT_CONFIGURED');
   }
 }
 
@@ -91,6 +101,7 @@ async function getOrCreateRegistrationUser(email: string, password: string): Pro
 
 const firebaseAuthService: AuthService = {
   async register(request) {
+    assertAccountProjectConfigured();
     let user: User;
 
     try {
@@ -115,6 +126,7 @@ const firebaseAuthService: AuthService = {
   },
 
   async signIn(credentials) {
+    assertAccountProjectConfigured();
     try {
       const result = await signInWithEmailAndPassword(
         auth,

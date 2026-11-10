@@ -39,10 +39,31 @@ service cloud.firestore {
       allow update, delete: if false;
     }
 
+    // Customers can send a message to the shared technician queue and read
+    // messages attached to their own account.
+    match /supportMessages/{messageId} {
+      allow read: if request.auth != null
+        && resource.data.customerId == request.auth.uid;
+      allow create: if request.auth != null
+        && request.resource.data.customerId == request.auth.uid
+        && request.resource.data.keys().hasOnly([
+          'customerId', 'recipient', 'message', 'status', 'createdAt', 'updatedAt'
+        ])
+        && request.resource.data.recipient == 'any-technician'
+        && request.resource.data.status == 'awaiting-response'
+        && request.resource.data.message is string
+        && request.resource.data.message.size() > 0
+        && request.resource.data.message.size() <= 1000
+        && request.resource.data.createdAt == request.time
+        && request.resource.data.updatedAt == request.time;
+      allow update, delete: if false;
+    }
+
     function validServiceRequest(data) {
-      let required = ['customerId', 'issueType', 'description', 'address', 'city', 'state', 'zip', 'attachments', 'status', 'createdAt', 'updatedAt'];
+      let required = ['customerId', 'timing', 'issueType', 'description', 'address', 'city', 'state', 'zip', 'attachments', 'status', 'createdAt', 'updatedAt'];
       return data.keys().hasAll(required)
-        && data.keys().hasOnly(required.concat(['latitude', 'longitude']))
+        && data.keys().hasOnly(required.concat(['schedulePreference', 'latitude', 'longitude']))
+        && (data.timing == 'asap' || data.timing == 'scheduled')
         && data.issueType is string && data.issueType.size() > 0 && data.issueType.size() <= 100
         && data.description is string && data.description.size() >= 1 && data.description.size() <= 500
         && data.address is string && data.address.size() > 0 && data.address.size() <= 200

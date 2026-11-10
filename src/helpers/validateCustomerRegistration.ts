@@ -1,4 +1,4 @@
-import type { RegistrationFormValues, RegistrationRequest } from '../auth/types';
+import type { RegistrationFormValues, RegistrationRequest } from '../auth/AuthenticationTypes';
 
 export type Registration = RegistrationFormValues;
 
