@@ -1,6 +1,11 @@
 
 
 export type ServiceRequestInput = {
+  timing: 'asap' | 'scheduled';
+  schedulePreference?: {
+    day: 'Tomorrow' | 'Next business day' | 'This week' | "I'm flexible";
+    time: 'Morning' | 'Afternoon' | 'Evening' | 'Any time';
+  };
   issueType: string;
   description: string;
   address: string;
@@ -21,6 +26,10 @@ export function validateServiceRequest(
   request: ServiceRequestInput,
 ): ServiceRequestErrors {
   const errors: ServiceRequestErrors = {};
+
+  if (request.timing === 'scheduled' && !request.schedulePreference) {
+    errors.timing = 'Please choose when you prefer service.';
+  }
 
   if (!request.issueType.trim()) {
     errors.issueType = 'Please select an electrical issue.';

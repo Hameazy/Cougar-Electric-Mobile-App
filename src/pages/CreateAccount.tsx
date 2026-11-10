@@ -5,8 +5,8 @@ import { useRef, useState } from 'react';
 import { Keyboard, KeyboardAvoidingView, Platform, Pressable, ScrollView, Text, View, type ScrollViewInstance } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { TextBox } from '../parts/TextBox';
-import { authService, getAuthErrorMessage } from '../auth/service';
-import { createRegistrationRequest, validateRegistration, type Errors, type Registration } from '../helpers/AccountHelp';
+import { authService, getAuthErrorMessage } from '../auth/FirebaseAuthenticationService';
+import { createRegistrationRequest, validateRegistration, type Errors, type Registration } from '../helpers/validateCustomerRegistration';
 
 const emptyForm: Registration = { fullName: '', email: '', phone: '', address: '', city: '', state: '', zip: '', password: '', confirmPassword: '' };
 
@@ -67,20 +67,19 @@ export default function CreateAccount() {
             <View style={styles.windows}><View style={styles.window} /><View style={styles.window} /><View style={styles.window} /></View>
             <View style={styles.rail} />
           </View>
-          <View style={styles.topline}><Link href="/" replace style={styles.textLink}>← Sign in</Link><Text style={styles.step}>CREATE ACCOUNT</Text></View>
+          <View style={styles.topline}><Link href="/sign-in" replace style={styles.textLink}>← Sign in</Link><Text style={styles.step}>CREATE ACCOUNT</Text></View>
           <Logo />
           <View style={styles.hero}>
             <Text style={styles.eyebrow}>RELIABLE. PROFESSIONAL. LOCAL.</Text>
             <Text style={styles.title}>{success ? 'You’re all set.' : 'Electrical help.\nWhen you need it.'}</Text>
             <Text style={styles.subtitle}>{success ? 'Welcome to Cougar Electric.' : 'Create your customer account to get connected with electrical help when it matters most.'}</Text>
-            <View style={styles.pill}><View style={styles.dot} /><Text style={styles.pillText}>Residential  •  Commercial  •  Industrial</Text></View>
           </View>
           {success ? (
             <View style={styles.card}>
               <Text style={styles.successIcon}>✓</Text>
               <Text accessibilityRole="header" style={styles.cardTitle}>Welcome to Cougar Electric</Text>
               <Text accessibilityLiveRegion="polite" style={styles.subtitle}>Continue to sign in to access your account.</Text>
-              <Link href="/" replace asChild><Pressable accessibilityRole="link" style={styles.button}><Text style={styles.buttonText}>CONTINUE TO SIGN IN  →</Text></Pressable></Link>
+              <Link href="/sign-in" replace asChild><Pressable accessibilityRole="link" style={styles.button}><Text style={styles.buttonText}>CONTINUE TO SIGN IN  →</Text></Pressable></Link>
             </View>
           ) : (
             <View style={styles.card}>
@@ -104,7 +103,7 @@ export default function CreateAccount() {
               <Pressable accessibilityRole="button" accessibilityState={{ disabled: submitting, busy: submitting }} disabled={submitting} onPress={submit} style={({ pressed }) => [styles.button, pressed && styles.buttonPressed]}>
                 <Text style={styles.buttonText}>{submitting ? 'CREATING ACCOUNT…' : 'CREATE ACCOUNT   →'}</Text>
               </Pressable>
-              <View style={styles.accountLink}><Text style={styles.cardSubtitle}>Already have an account?</Text><Link href="/" replace style={styles.textLink}>Sign in</Link></View>
+              <View style={styles.accountLink}><Text style={styles.cardSubtitle}>Already have an account?</Text><Link href="/sign-in" replace style={styles.textLink}>Sign in</Link></View>
             </View>
           )}
           <Text style={styles.footer}>COUGAR ELECTRIC INC.  ·  CUSTOMER REGISTRATION</Text>

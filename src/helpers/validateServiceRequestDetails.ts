@@ -1,4 +1,4 @@
-import type { ServiceLocation } from '../serviceRequests/types';
+import type { ServiceLocation } from '../serviceRequests/ServiceRequestTypes';
 
 export type LocationErrors = Partial<Record<keyof ServiceLocation, string>>;
 
@@ -16,6 +16,5 @@ export function validateServiceLocation(location: ServiceLocation): LocationErro
 export function validateIssueDescription(description: string): string | undefined {
   const value = description.trim();
   if (!value) return 'Describe the electrical problem before continuing.';
-  if (value.length < 10) return 'Please provide at least 10 characters.';
   return undefined;
 }

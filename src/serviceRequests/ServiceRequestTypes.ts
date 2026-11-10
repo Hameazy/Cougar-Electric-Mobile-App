@@ -10,7 +10,15 @@ export type ServiceLocation = {
   longitude?: number;
 };
 
+export type RequestTiming = 'asap' | 'scheduled';
+export type SchedulePreference = {
+  day: 'Tomorrow' | 'Next business day' | 'This week' | "I'm flexible";
+  time: 'Morning' | 'Afternoon' | 'Evening' | 'Any time';
+};
+
 export type ServiceRequestDraft = {
+  timing: RequestTiming;
+  schedulePreference?: SchedulePreference;
   issueType: ElectricalIssue | null;
   description: string;
   location?: ServiceLocation;

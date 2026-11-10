@@ -3,7 +3,7 @@ import type {
   RegistrationRequest,
   RegistrationResult,
   SignInCredentials,
-} from './types';
+} from './AuthenticationTypes';
 
 export type AuthErrorCode =
   | 'NOT_CONFIGURED'

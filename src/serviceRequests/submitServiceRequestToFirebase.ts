@@ -18,7 +18,7 @@ import { app } from '../../firebaseApp';
 import {
   validateServiceRequest,
   type ServiceRequestInput,
-} from './validation';
+} from './validateServiceRequestSubmission';
 
 const db = getFirestore(app);
 const storage = getStorage(app);
@@ -103,6 +103,8 @@ export async function submitServiceRequest(
 
       transaction.set(requestRef, {
         customerId: customer.uid,
+        timing: request.timing,
+        ...(request.schedulePreference ? { schedulePreference: request.schedulePreference } : {}),
         issueType: request.issueType.trim(),
         description: request.description.trim(),
         address: request.address.trim(),

@@ -144,7 +144,7 @@ export default function ForgotPassword() {
                 </Text>
 
                 <View style={{ marginTop: 24 }}>
-                  <Link href="/" style={styles.textLink}>
+                  <Link href="/sign-in" style={styles.textLink}>
                     Back to sign in
                   </Link>
                 </View>
@@ -214,7 +214,7 @@ export default function ForgotPassword() {
                     Remember your password?
                   </Text>
 
-                  <Link href="/" style={styles.textLink}>
+                  <Link href="/sign-in" style={styles.textLink}>
                     Sign in
                   </Link>
                 </View>

@@ -1,4 +1,4 @@
-import { Link, useRouter } from 'expo-router';
+import { Link, useLocalSearchParams, useRouter } from 'expo-router';
 import { useEffect, useRef, useState } from 'react';
 import {
   Keyboard,
@@ -10,7 +10,7 @@ import {
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { authService, getAuthErrorMessage } from '../auth/service';
+import { authService, getAuthErrorMessage } from '../auth/FirebaseAuthenticationService';
 import { useSignInAttempts } from '../helpers/useSignInAttempts';
 import { ErrorBanner } from '../parts/ErrorBanner';
 import { Logo } from '../parts/Logo';
@@ -19,16 +19,15 @@ import { styles } from '../styles/PageStyle';
 
 export default function SignIn() {
   const router = useRouter();
+  const { returnTo } = useLocalSearchParams<{ returnTo?: string }>();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [attempted, setAttempted] = useState(false);
   const [continued, setContinued] = useState(false);
   const [submitting, setSubmitting] = useState(false);
-  const [signingOut, setSigningOut] = useState(false);
   const [sessionMessage, setSessionMessage] = useState('');
   const [passwordInputKey, setPasswordInputKey] = useState(0);
   const submittingRef = useRef(false);
-  const signingOutRef = useRef(false);
   const {
     message,
     locked,
@@ -42,7 +41,9 @@ export default function SignIn() {
 
     authService.restoreSession()
       .then((session) => {
-        if (mounted && session) setContinued(true);
+        if (mounted && session) {
+          setContinued(true);
+        }
       })
       .catch((error) => {
         if (mounted) setSessionMessage(getAuthErrorMessage(error));
@@ -83,6 +84,7 @@ export default function SignIn() {
       });
       recordSuccess();
       setContinued(true);
+      router.replace(returnTo === 'my-jobs' ? '/my-jobs' : returnTo === 'messages' ? '/messages' : '/dashboard');
     } catch (error) {
       recordFailure(error);
     } finally {
@@ -90,29 +92,6 @@ export default function SignIn() {
       setPasswordInputKey((key) => key + 1);
       submittingRef.current = false;
       setSubmitting(false);
-    }
-  }
-
-  async function submitSignOut() {
-    if (signingOutRef.current) return;
-
-    signingOutRef.current = true;
-    setSigningOut(true);
-    setSessionMessage('');
-
-    try {
-      await authService.signOut();
-      setContinued(false);
-      setAttempted(false);
-      setEmail('');
-      setPassword('');
-      clearMessage();
-      router.replace('/');
-    } catch (error) {
-      setSessionMessage(getAuthErrorMessage(error));
-    } finally {
-      signingOutRef.current = false;
-      setSigningOut(false);
     }
   }
 
@@ -144,7 +123,7 @@ export default function SignIn() {
           </View>
 
           <View style={styles.topline}>
-            <Text style={styles.toplineText}>CUSTOMER ACCESS</Text>
+            <Link href="/dashboard" style={styles.textLink}>← Dashboard</Link>
             <Text style={styles.step}>COUGAR ELECTRIC</Text>
           </View>
 
@@ -167,12 +146,6 @@ export default function SignIn() {
                 : 'Sign in to manage your electrical service and stay connected with our team.'}
             </Text>
 
-            <View style={styles.pill}>
-              <View style={styles.dot} />
-              <Text style={styles.pillText}>
-                Residential  •  Commercial  •  Industrial
-              </Text>
-            </View>
           </View>
 
           <View style={styles.card}>
@@ -191,22 +164,8 @@ export default function SignIn() {
 
                 <ErrorBanner message={sessionMessage} />
 
-                <Pressable
-                  accessibilityRole="button"
-                  accessibilityState={{
-                    disabled: signingOut,
-                    busy: signingOut,
-                  }}
-                  disabled={signingOut}
-                  style={({ pressed }) => [
-                    styles.button,
-                    pressed && styles.buttonPressed,
-                  ]}
-                  onPress={submitSignOut}
-                >
-                  <Text style={styles.buttonText}>
-                    {signingOut ? 'SIGNING OUT…' : 'SIGN OUT   →'}
-                  </Text>
+                <Pressable accessibilityRole="button" style={({ pressed }) => [styles.button, pressed && styles.buttonPressed]} onPress={() => router.replace('/dashboard')}>
+                  <Text style={styles.buttonText}>BACK TO DASHBOARD   →</Text>
                 </Pressable>
               </>
             ) : (

@@ -12,11 +12,11 @@ import { ErrorBanner } from '../parts/ErrorBanner';
 import {
   createServiceRequestId,
   submitServiceRequest,
-} from './submission';
+} from './submitServiceRequestToFirebase';
 import {
   validateServiceRequest,
   type ServiceRequestInput,
-} from './validation';
+} from './validateServiceRequestSubmission';
 
 type SubmitServiceRequestProps = {
   request: ServiceRequestInput;
