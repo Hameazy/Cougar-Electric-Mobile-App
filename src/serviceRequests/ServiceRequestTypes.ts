@@ -12,12 +12,13 @@ export type ServiceLocation = {
 
 export type RequestTiming = 'asap' | 'scheduled';
 export type SchedulePreference = {
-  day: 'Tomorrow' | 'Next business day' | 'This week' | "I'm flexible";
+  // ISO local date (YYYY-MM-DD). This remains a preference until confirmed.
+  day: string;
   time: 'Morning' | 'Afternoon' | 'Evening' | 'Any time';
 };
 
 export type ServiceRequestDraft = {
-  timing: RequestTiming;
+  timing: RequestTiming | null;
   schedulePreference?: SchedulePreference;
   issueType: ElectricalIssue | null;
   description: string;

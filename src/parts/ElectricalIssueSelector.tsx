@@ -1,22 +1,12 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { ELECTRICAL_ISSUES, ELECTRICAL_ISSUE_DESCRIPTIONS, type ElectricalIssue } from '../helpers/CommonElectricalProblems';
+import { ElectricalIssueIcon } from './ElectricalIssueIcon';
 
 export { ELECTRICAL_ISSUES, type ElectricalIssue } from '../helpers/CommonElectricalProblems';
 
 export type ElectricalIssueSelectorProps = {
   selectedIssue: ElectricalIssue | null;
   onSelectIssue: (issue: ElectricalIssue) => void;
-};
-
-const ISSUE_ICONS: Record<ElectricalIssue, string> = {
-  'Power outage': 'ϟ',
-  'Breaker keeps tripping': '▤',
-  'Outlet not working': '♧',
-  'Lighting issue': '●',
-  'EV charger issue': '▰',
-  'Electrical panel issue': '≋',
-  'Emergency electrical': '△',
-  Other: '◯',
 };
 
 export default function ElectricalIssueSelector({ selectedIssue, onSelectIssue }: ElectricalIssueSelectorProps) {
@@ -35,7 +25,7 @@ export default function ElectricalIssueSelector({ selectedIssue, onSelectIssue }
             style={({ pressed }) => [selectorStyles.row, selected && selectorStyles.selected, pressed && selectorStyles.pressed]}
           >
             <View style={[selectorStyles.icon, emergency && selectorStyles.emergencyIcon]}>
-              <Text style={[selectorStyles.iconText, emergency && selectorStyles.emergencyIconText]}>{ISSUE_ICONS[issue]}</Text>
+              <ElectricalIssueIcon color={emergency ? '#FF526A' : '#F5B900'} issue={issue} size={24} />
             </View>
             <View style={selectorStyles.copy}>
               <Text style={[selectorStyles.title, emergency && issue === 'Emergency electrical' && selectorStyles.emergencyTitle]}>{issue}</Text>
@@ -58,8 +48,6 @@ const selectorStyles = StyleSheet.create({
   pressed: { opacity: 0.7 },
   icon: { alignItems: 'center', backgroundColor: '#12213A', borderColor: '#243B5F', borderRadius: 11, borderWidth: 1, height: 42, justifyContent: 'center', width: 42 },
   emergencyIcon: { backgroundColor: '#341B2A', borderColor: '#743144' },
-  iconText: { color: '#F5B900', fontSize: 20, fontWeight: '700' },
-  emergencyIconText: { color: '#FF526A' },
   copy: { flex: 1, marginLeft: 14 },
   title: { color: '#F8FAFC', fontSize: 15, fontWeight: '700' },
   emergencyTitle: { color: '#FF6B7F' },

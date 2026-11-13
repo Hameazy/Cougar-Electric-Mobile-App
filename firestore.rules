@@ -26,8 +26,8 @@ service cloud.firestore {
       allow delete: if false;
     }
 
-    // Emergency service requests: customers create and read their own; requests are
-    // always created as 'pending' and can't be edited or deleted from the app.
+    // Emergency service requests: customers create and read their own. The only
+    // customer update is a cancellation while the request is still eligible.
     match /serviceRequests/{requestId} {
       allow read: if request.auth != null && resource.data.customerId == request.auth.uid;
       allow create: if request.auth != null
@@ -36,7 +36,17 @@ service cloud.firestore {
         && request.resource.data.status == 'pending'
         && request.resource.data.createdAt == request.time
         && request.resource.data.updatedAt == request.time;
-      allow update, delete: if false;
+      allow update: if request.auth != null
+        && resource.data.customerId == request.auth.uid
+        && resource.data.status in ['pending', 'matched', 'en-route']
+        && request.resource.data.status == 'cancelled'
+        && request.resource.data.cancelledBy == 'customer'
+        && request.resource.data.cancelledAt == request.time
+        && request.resource.data.updatedAt == request.time
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+          'status', 'cancelledAt', 'cancelledBy', 'updatedAt'
+        ]);
+      allow delete: if false;
     }
 
     // Customers can send a message to the shared technician queue and read

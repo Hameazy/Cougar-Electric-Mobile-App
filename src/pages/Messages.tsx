@@ -4,20 +4,16 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import type { AuthUser } from '../auth/AuthenticationTypes';
 import { sendTechnicianMessage } from '../messages/sendMessageToAvailableTechnician';
 import { AppSectionHeader } from '../parts/AppSectionHeader';
-import { BottomNavigation } from '../parts/BottomNavigation';
 import { SignedInOnly } from '../parts/SignedInOnly';
 import { styles } from '../styles/PageStyle';
 
 export default function Messages() {
-  const [notice, setNotice] = useState('');
   return (
-    <SafeAreaView style={styles.safe}>
+    <SafeAreaView edges={['top', 'left', 'right']} style={styles.safe}>
       <ScrollView contentContainerStyle={messageStyles.content} keyboardShouldPersistTaps="handled">
         <AppSectionHeader eyebrow="CUSTOMER SUPPORT" title="Messages" subtitle="Send a question to any available Cougar Electric technician." />
         <SignedInOnly returnTo="messages">{(user) => <MessageComposer user={user} />}</SignedInOnly>
-        {!!notice && <Text style={messageStyles.notice}>{notice}</Text>}
       </ScrollView>
-      <BottomNavigation active="Messages" onUnavailable={() => setNotice('Payments are coming soon.')} />
     </SafeAreaView>
   );
 }
@@ -86,8 +82,7 @@ function MessageComposer({ user }: { user: AuthUser }) {
 }
 
 const messageStyles = StyleSheet.create({
-  content: { alignSelf: 'center', maxWidth: 600, padding: 22, paddingBottom: 120, width: '100%' },
-  notice: { color: '#AAB5C7', marginTop: 14, textAlign: 'center' },
+  content: { alignSelf: 'center', maxWidth: 600, padding: 22, paddingBottom: 40, width: '100%' },
   card: { alignItems: 'stretch', backgroundColor: '#111722', borderColor: '#353F50', borderRadius: 20, borderWidth: 1, marginTop: 26, padding: 22 },
   recipient: { alignItems: 'center', flexDirection: 'row' },
   avatar: { alignItems: 'center', backgroundColor: '#F5B900', borderRadius: 22, height: 44, justifyContent: 'center', width: 44 },

@@ -17,7 +17,7 @@ import { Logo } from '../parts/Logo';
 import { TextBox } from '../parts/TextBox';
 import { styles } from '../styles/PageStyle';
 
-export default function SignIn() {
+export default function SignIn({ accountTab = false }: { accountTab?: boolean }) {
   const router = useRouter();
   const { returnTo } = useLocalSearchParams<{ returnTo?: string }>();
   const [email, setEmail] = useState('');
@@ -64,6 +64,11 @@ export default function SignIn() {
     ? 'Enter your password.'
     : undefined;
 
+  function goToDashboard() {
+    if (accountTab) router.navigate('/dashboard');
+    else router.dismissTo('/dashboard');
+  }
+
   async function submit() {
     if (submittingRef.current || locked) return;
 
@@ -84,7 +89,10 @@ export default function SignIn() {
       });
       recordSuccess();
       setContinued(true);
-      router.replace(returnTo === 'my-jobs' ? '/my-jobs' : returnTo === 'messages' ? '/messages' : '/dashboard');
+      if (accountTab) return;
+      if (returnTo === 'my-jobs') router.dismissTo('/my-jobs');
+      else if (returnTo === 'messages') router.dismissTo('/messages');
+      else goToDashboard();
     } catch (error) {
       recordFailure(error);
     } finally {
@@ -98,7 +106,10 @@ export default function SignIn() {
   const signInDisabled = submitting || locked;
 
   return (
-    <SafeAreaView style={styles.safe}>
+    <SafeAreaView
+      edges={accountTab ? ['top', 'left', 'right'] : undefined}
+      style={styles.safe}
+    >
       <KeyboardAvoidingView
         style={styles.flex}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
@@ -108,48 +119,65 @@ export default function SignIn() {
           keyboardShouldPersistTaps="handled"
           keyboardDismissMode="on-drag"
         >
-          <View
-            pointerEvents="none"
-            accessible={false}
-            style={styles.backdrop}
-          >
-            <View style={styles.rail} />
-            <View style={styles.windows}>
-              <View style={styles.window} />
-              <View style={styles.window} />
-              <View style={styles.window} />
+          {!accountTab && (
+            <View
+              pointerEvents="none"
+              accessible={false}
+              style={styles.backdrop}
+            >
+              <View style={styles.rail} />
+              <View style={styles.windows}>
+                <View style={styles.window} />
+                <View style={styles.window} />
+                <View style={styles.window} />
+              </View>
+              <View style={styles.rail} />
             </View>
-            <View style={styles.rail} />
-          </View>
+          )}
 
-          <View style={styles.topline}>
-            <Link href="/dashboard" style={styles.textLink}>← Dashboard</Link>
-            <Text style={styles.step}>COUGAR ELECTRIC</Text>
-          </View>
+          {!accountTab && (
+            <View style={styles.topline}>
+              <Link href="/dashboard" replace style={styles.textLink}>
+                ← Dashboard
+              </Link>
+              <Text style={styles.step}>COUGAR ELECTRIC</Text>
+            </View>
+          )}
 
-          <Logo />
+          {!accountTab && <Logo />}
 
-          <View style={styles.hero}>
-            <Text style={styles.eyebrow}>
-              RELIABLE. PROFESSIONAL. LOCAL.
-            </Text>
+          {accountTab ? (
+            <View style={styles.hero}>
+              <Text style={styles.eyebrow}>ACCOUNT</Text>
+              <Text accessibilityRole="header" style={styles.title}>
+                Sign in
+              </Text>
+              <Text style={styles.subtitle}>
+                Sign in to manage your Cougar Electric account.
+              </Text>
+            </View>
+          ) : (
+            <View style={styles.hero}>
+              <Text style={styles.eyebrow}>
+                RELIABLE. PROFESSIONAL. LOCAL.
+              </Text>
 
-            <Text accessibilityRole="header" style={styles.title}>
-              {continued
-                ? 'Welcome back.'
-                : 'Electrical help.\nWhen you need it.'}
-            </Text>
+              <Text accessibilityRole="header" style={styles.title}>
+                {continued
+                  ? 'Welcome back.'
+                  : 'Electrical help.\nWhen you need it.'}
+              </Text>
 
-            <Text style={styles.subtitle}>
-              {continued
-                ? 'Your next service starts here.'
-                : 'Sign in to manage your electrical service and stay connected with our team.'}
-            </Text>
-
-          </View>
+              <Text style={styles.subtitle}>
+                {continued
+                  ? 'Your next service starts here.'
+                  : 'Sign in to manage your electrical service and stay connected with our team.'}
+              </Text>
+            </View>
+          )}
 
           <View style={styles.card}>
-            {continued ? (
+            {continued && !accountTab ? (
               <>
                 <Text
                   accessibilityRole="header"
@@ -164,7 +192,7 @@ export default function SignIn() {
 
                 <ErrorBanner message={sessionMessage} />
 
-                <Pressable accessibilityRole="button" style={({ pressed }) => [styles.button, pressed && styles.buttonPressed]} onPress={() => router.replace('/dashboard')}>
+                <Pressable accessibilityRole="button" style={({ pressed }) => [styles.button, pressed && styles.buttonPressed]} onPress={goToDashboard}>
                   <Text style={styles.buttonText}>BACK TO DASHBOARD   →</Text>
                 </Pressable>
               </>
@@ -264,9 +292,11 @@ export default function SignIn() {
             )}
           </View>
 
-          <Text style={styles.footer}>
-            COUGAR ELECTRIC INC.  ·  CUSTOMER ACCESS
-          </Text>
+          {!accountTab && (
+            <Text style={styles.footer}>
+              COUGAR ELECTRIC INC.  ·  CUSTOMER ACCESS
+            </Text>
+          )}
         </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>

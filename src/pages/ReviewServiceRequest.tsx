@@ -1,9 +1,10 @@
 import { Link, router } from 'expo-router';
-import { useState, type ReactNode } from 'react';
-import { Image, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import type { ReactNode } from 'react';
+import { Image, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import type { Attachment } from '../helpers/AttachmentRules';
-import { Logo } from '../parts/Logo';
+import { BackButton } from '../parts/BackButton';
+import { formatServiceDate } from '../serviceRequests/SchedulePreferenceUtils';
 import { useServiceRequestDraft } from '../serviceRequests/ServiceRequestDraftProvider';
 import { SubmitServiceRequest } from '../serviceRequests/SubmitServiceRequest';
 import { withDraftDescription } from '../serviceRequests/prepareDescriptionForSubmission';
@@ -12,7 +13,7 @@ import { styles } from '../styles/PageStyle';
 
 type ReviewSectionProps = {
   title: string;
-  editHref: '/dashboard' | '/schedule-preference' | '/choose-electrical-issue' | '/emergency-description' | '/emergency-location';
+  editHref: '/emergency-description?section=timing' | '/choose-electrical-issue?mode=edit' | '/emergency-description' | '/emergency-location';
   editLabel: string;
   children: ReactNode;
 };
@@ -50,7 +51,6 @@ function AttachmentPreview({ file }: { file: Attachment }) {
 
 export default function ReviewServiceRequest() {
   const { draft, resetDraft } = useServiceRequestDraft();
-  const [submittedId, setSubmittedId] = useState('');
   const location = draft.location;
   const request = withDraftDescription(draft, {
     timing: draft.timing,
@@ -65,6 +65,7 @@ export default function ReviewServiceRequest() {
   });
   const errors = validateServiceRequest(request);
   const missingIssue = !!errors.issueType;
+  const missingTiming = !!errors.timing;
   const missingDescription = !!errors.description;
   const missingLocation = !!(errors.address || errors.city || errors.state || errors.zip);
   const ready = Object.keys(errors).length === 0;
@@ -72,47 +73,29 @@ export default function ReviewServiceRequest() {
     ? `${location.address}\n${location.city}, ${location.state.toUpperCase()} ${location.zip}`
     : 'No service address saved';
 
-  if (submittedId) {
-    return (
-      <SafeAreaView style={styles.safe}>
-        <ScrollView contentContainerStyle={styles.content}>
-          <Logo />
-          <View style={[styles.card, reviewStyles.successCard]}>
-            <Text style={reviewStyles.successIcon}>✓</Text>
-            <Text accessibilityRole="header" style={styles.cardTitle}>Request submitted!</Text>
-            <Text style={styles.subtitle}>Your service request has been received. Our team will follow up shortly.</Text>
-            <Text selectable style={reviewStyles.requestId}>Request ID: {submittedId}</Text>
-            <Pressable accessibilityRole="button" onPress={() => router.replace('/choose-electrical-issue')} style={({ pressed }) => [styles.button, pressed && styles.buttonPressed]}>
-              <Text style={styles.buttonText}>DONE</Text>
-            </Pressable>
-          </View>
-        </ScrollView>
-      </SafeAreaView>
-    );
-  }
-
   return (
     <SafeAreaView style={styles.safe}>
-      <ScrollView contentContainerStyle={styles.content}>
-        <View style={styles.topline}>
-          <Link href="/emergency-location" style={styles.textLink}>← Back</Link>
-          <Text style={styles.step}>FINAL STEP</Text>
-        </View>
-        <Logo />
-        <View style={styles.hero}>
-          <Text style={styles.eyebrow}>REVIEW AND SUBMIT</Text>
-          <Text accessibilityRole="header" style={styles.title}>Review your request.</Text>
-          <Text style={styles.subtitle}>Make sure everything looks right before sending it to Cougar Electric.</Text>
+      <ScrollView contentContainerStyle={reviewStyles.content}>
+        <View style={reviewStyles.header}>
+          <View style={reviewStyles.headerSide}>
+            <BackButton accessibilityLabel="Back" fallback="/emergency-location" textStyle={styles.textLink}>← Back</BackButton>
+          </View>
+          <Text accessibilityRole="header" style={reviewStyles.heading}>Review Request</Text>
+          <View style={reviewStyles.headerSide} />
         </View>
 
         <View style={reviewStyles.summaryCard}>
-          <ReviewSection title="Service timing" editHref={draft.timing === 'scheduled' ? '/schedule-preference' : '/dashboard'} editLabel="Edit service timing">
-            <Value>{draft.timing === 'scheduled'
-              ? `Scheduled · ${draft.schedulePreference?.day ?? 'No day selected'} · ${draft.schedulePreference?.time ?? 'No time selected'}`
-              : 'As soon as possible'}</Value>
+          <ReviewSection title="Service timing" editHref="/emergency-description?section=timing" editLabel="Edit service timing">
+            <Value missing={missingTiming}>{draft.timing === 'scheduled'
+              ? `Preferred date · ${draft.schedulePreference?.day
+                ? formatServiceDate(draft.schedulePreference.day)
+                : 'No date selected'} · Pending confirmation`
+              : draft.timing === 'asap'
+                ? 'Urgent · As soon as possible'
+                : 'No timing selected'}</Value>
           </ReviewSection>
 
-          <ReviewSection title="Electrical issue" editHref="/choose-electrical-issue" editLabel="Edit electrical issue">
+          <ReviewSection title="Electrical issue" editHref="/choose-electrical-issue?mode=edit" editLabel="Edit electrical issue">
             <Value missing={missingIssue}>{draft.issueType ?? 'No issue selected'}</Value>
           </ReviewSection>
 
@@ -144,9 +127,9 @@ export default function ReviewServiceRequest() {
 
         {ready && (
           <View style={reviewStyles.submitArea}>
-            <SubmitServiceRequest request={request} files={draft.attachments} onSuccess={(id) => {
-              setSubmittedId(id);
+            <SubmitServiceRequest request={request} files={draft.attachments} onSuccess={() => {
               resetDraft();
+              router.dismissTo('/dashboard');
             }} />
             <Text style={styles.footerNote}>By submitting, you confirm that the information above is accurate.</Text>
           </View>
@@ -159,6 +142,10 @@ export default function ReviewServiceRequest() {
 }
 
 const reviewStyles = StyleSheet.create({
+  content: { alignSelf: 'center', maxWidth: 600, padding: 22, paddingBottom: 40, width: '100%' },
+  header: { alignItems: 'center', flexDirection: 'row', marginBottom: 22, marginTop: 4 },
+  headerSide: { width: 72 },
+  heading: { color: '#F8FAFC', flex: 1, fontSize: 22, fontWeight: '800', textAlign: 'center' },
   summaryCard: { backgroundColor: 'rgba(18, 23, 33, 0.94)', borderColor: '#353B46', borderRadius: 20, borderWidth: 1, overflow: 'hidden' },
   section: { borderBottomColor: '#303744', borderBottomWidth: StyleSheet.hairlineWidth, paddingHorizontal: 20, paddingVertical: 20 },
   sectionHeader: { alignItems: 'center', flexDirection: 'row', justifyContent: 'space-between', marginBottom: 10 },
@@ -176,7 +163,4 @@ const reviewStyles = StyleSheet.create({
   warningTitle: { color: '#FFB1A8', fontSize: 15, fontWeight: '700' },
   warningText: { color: '#D5A6A1', fontSize: 13, lineHeight: 20, marginTop: 5 },
   submitArea: { marginTop: 18 },
-  successCard: { alignItems: 'center', marginTop: 28 },
-  successIcon: { color: '#F5B900', fontSize: 42, fontWeight: '800', marginBottom: 12 },
-  requestId: { color: '#F5B900', fontSize: 13, fontWeight: '700', marginVertical: 20 },
 });

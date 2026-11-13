@@ -1,10 +1,12 @@
 
 import { FirebaseError } from 'firebase/app';
 import {
+  collection,
   doc,
+  getDoc,
   getFirestore,
-  runTransaction,
   serverTimestamp,
+  setDoc,
 } from 'firebase/firestore';
 import {
   getDownloadURL,
@@ -19,9 +21,24 @@ import {
   validateServiceRequest,
   type ServiceRequestInput,
 } from './validateServiceRequestSubmission';
+import { SERVICE_REQUESTS_COLLECTION } from './ServiceRequestConstants';
 
 const db = getFirestore(app);
 const storage = getStorage(app);
+
+function logFirebaseError(stage: string, error: unknown) {
+  if (!__DEV__) return;
+
+  if (error instanceof FirebaseError) {
+    console.error(`[service-request] ${stage}`, {
+      code: error.code,
+      message: error.message,
+    });
+    return;
+  }
+
+  console.error(`[service-request] ${stage}`, error);
+}
 
 // Upload with a stable path so a retry overwrites instead of duplicating files.
 async function uploadAttachments(
@@ -45,12 +62,10 @@ async function uploadAttachments(
   );
 }
 
-export const SERVICE_REQUESTS_COLLECTION = 'serviceRequests';
-
 // Generate an ID once for each new service request.
 // Reuse the same ID if the customer retries submitting it.
 export function createServiceRequestId(): string {
-  return doc(db, SERVICE_REQUESTS_COLLECTION).id;
+  return doc(collection(db, SERVICE_REQUESTS_COLLECTION)).id;
 }
 
 // Save the completed request for the signed-in customer.
@@ -63,6 +78,10 @@ export async function submitServiceRequest(
 
   if (Object.keys(errors).length > 0) {
     throw new Error('Please complete all required fields before submitting.');
+  }
+
+  if (!request.timing) {
+    throw new Error('Please choose when you need a technician.');
   }
 
   if (!requestId.trim() || requestId.includes('/')) {
@@ -82,29 +101,21 @@ export async function submitServiceRequest(
     if (files.length > 0) {
       try {
         attachmentUrls = await uploadAttachments(files, customer.uid, requestId);
-      } catch {
+      } catch (error) {
+        logFirebaseError('attachment upload failed', error);
         throw new Error(
           'We could not upload your photos or videos. Please try again.',
         );
       }
     }
 
-    await runTransaction(db, async (transaction) => {
-      const existingRequest = await transaction.get(requestRef);
-
-      if (existingRequest.exists()) {
-        // A retry should not overwrite an existing request.
-        if (existingRequest.data().customerId !== customer.uid) {
-          throw new Error('This service request ID is already in use.');
-        }
-
-        return;
-      }
-
-      transaction.set(requestRef, {
+    try {
+      await setDoc(requestRef, {
         customerId: customer.uid,
         timing: request.timing,
-        ...(request.schedulePreference ? { schedulePreference: request.schedulePreference } : {}),
+        ...(request.timing === 'scheduled' && request.schedulePreference
+          ? { schedulePreference: request.schedulePreference }
+          : {}),
         issueType: request.issueType.trim(),
         description: request.description.trim(),
         address: request.address.trim(),
@@ -119,10 +130,28 @@ export async function submitServiceRequest(
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp(),
       });
-    });
+    } catch (error) {
+      // If the create reached Firestore but its acknowledgement was lost, a
+      // retry with the same ID is successful when the saved request is ours.
+      try {
+        const existingRequest = await getDoc(requestRef);
+        if (
+          existingRequest.exists()
+          && existingRequest.data().customerId === customer.uid
+        ) {
+          return requestRef.id;
+        }
+      } catch {
+        // Preserve the original write error; it is the actionable failure.
+      }
+
+      throw error;
+    }
 
     return requestRef.id;
   } catch (error) {
+    logFirebaseError('submission failed', error);
+
     if (error instanceof FirebaseError) {
       if (error.code === 'permission-denied') {
         throw new Error(

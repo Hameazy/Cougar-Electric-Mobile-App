@@ -1,11 +1,11 @@
 
 
+import type { RequestTiming, SchedulePreference } from './ServiceRequestTypes';
+import { isFutureServiceDate } from './SchedulePreferenceUtils';
+
 export type ServiceRequestInput = {
-  timing: 'asap' | 'scheduled';
-  schedulePreference?: {
-    day: 'Tomorrow' | 'Next business day' | 'This week' | "I'm flexible";
-    time: 'Morning' | 'Afternoon' | 'Evening' | 'Any time';
-  };
+  timing: RequestTiming | null;
+  schedulePreference?: SchedulePreference;
   issueType: string;
   description: string;
   address: string;
@@ -27,8 +27,17 @@ export function validateServiceRequest(
 ): ServiceRequestErrors {
   const errors: ServiceRequestErrors = {};
 
-  if (request.timing === 'scheduled' && !request.schedulePreference) {
-    errors.timing = 'Please choose when you prefer service.';
+  if (!request.timing) {
+    errors.timing = 'Please choose when you need a technician.';
+  } else if (
+    request.timing === 'scheduled'
+    && (
+      !request.schedulePreference
+      || !isFutureServiceDate(request.schedulePreference.day)
+      || !request.schedulePreference.time
+    )
+  ) {
+    errors.timing = 'Please choose a future preferred service date.';
   }
 
   if (!request.issueType.trim()) {
