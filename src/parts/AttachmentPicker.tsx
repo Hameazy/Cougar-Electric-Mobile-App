@@ -76,9 +76,6 @@ export function AttachmentPicker({ value, onChange }: Props) {
         <Text accessibilityRole="header" style={styles.section}>PHOTOS & VIDEO</Text>
         <View style={styles.optionalPill}><Text style={styles.optionalText}>OPTIONAL</Text></View>
       </View>
-      <Text style={styles.lead}>
-        A quick photo of the outlet, panel, or wiring helps our electrician bring the right parts.
-      </Text>
 
       <ErrorBanner message={message} />
 
@@ -92,7 +89,6 @@ export function AttachmentPicker({ value, onChange }: Props) {
         >
           <View style={styles.dropIcon}><Text style={styles.dropIconText}>+</Text></View>
           <Text style={styles.dropTitle}>Add photos or a video</Text>
-          <Text style={styles.dropHint}>Up to {MAX_ATTACHMENTS} files · videos up to {MAX_VIDEO_SECONDS} seconds</Text>
         </Pressable>
       ) : (
         <View style={styles.grid}>
@@ -152,17 +148,6 @@ export function AttachmentPicker({ value, onChange }: Props) {
         </Pressable>
       )}
 
-      <View style={styles.footer}>
-        <View style={styles.meter} accessible accessibilityLabel={`${value.length} of ${MAX_ATTACHMENTS} files added`}>
-          {Array.from({ length: MAX_ATTACHMENTS }, (_, i) => (
-            <View key={i} style={[styles.meterBar, i < value.length && styles.meterBarOn]} />
-          ))}
-        </View>
-        <Text style={styles.footerText}>
-          {full ? 'Limit reached — remove one to add another' : `${value.length} of ${MAX_ATTACHMENTS} added`}
-        </Text>
-      </View>
-      <Text style={styles.formats}>JPG, PNG, HEIC, WEBP · MP4, MOV</Text>
     </View>
   );
 }
@@ -172,7 +157,6 @@ const styles = StyleSheet.create({
   section: { color: GOLD, fontSize: 11, letterSpacing: 1.3, fontWeight: '700' },
   optionalPill: { borderWidth: 1, borderColor: '#3A4250', borderRadius: 999, paddingHorizontal: 10, paddingVertical: 3 },
   optionalText: { color: '#99A7BC', fontSize: 9, letterSpacing: 1.2, fontWeight: '700' },
-  lead: { color: '#B9C3D2', fontSize: 14, lineHeight: 21, marginTop: 10, marginBottom: 16 },
 
   dropZone: {
     marginTop: 4,
@@ -189,7 +173,6 @@ const styles = StyleSheet.create({
   dropIcon: { width: 52, height: 52, borderRadius: 26, borderWidth: 1.5, borderColor: GOLD, alignItems: 'center', justifyContent: 'center', marginBottom: 12 },
   dropIconText: { color: GOLD, fontSize: 28, lineHeight: 30, fontWeight: '300' },
   dropTitle: { color: '#FFFFFF', fontSize: 16, fontWeight: '700' },
-  dropHint: { color: '#99A7BC', fontSize: 12, marginTop: 6, textAlign: 'center' },
 
   grid: { flexDirection: 'row', flexWrap: 'wrap', gap: 10, marginTop: 4 },
   tile: { width: '31%', aspectRatio: 1, borderRadius: 14, overflow: 'hidden', backgroundColor: '#0A101B', borderWidth: 1, borderColor: '#3A4250' },
@@ -209,10 +192,4 @@ const styles = StyleSheet.create({
   cameraButton: { marginTop: 12, minHeight: 48, borderRadius: 12, borderWidth: 1, borderColor: GOLD, alignItems: 'center', justifyContent: 'center' },
   cameraText: { color: GOLD, fontSize: 14, fontWeight: '700', letterSpacing: 0.5 },
 
-  footer: { flexDirection: 'row', alignItems: 'center', gap: 10, marginTop: 16 },
-  meter: { flexDirection: 'row', gap: 4 },
-  meterBar: { width: 18, height: 4, borderRadius: 2, backgroundColor: '#2A313D' },
-  meterBarOn: { backgroundColor: GOLD },
-  footerText: { color: '#99A7BC', fontSize: 12, flex: 1 },
-  formats: { color: '#728099', fontSize: 11, marginTop: 6 },
 });

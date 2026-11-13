@@ -1,17 +1,19 @@
-import { Link, router } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { BackButton } from '../parts/BackButton';
 import ElectricalIssueSelector from '../parts/ElectricalIssueSelector';
 import { useServiceRequestDraft } from '../serviceRequests/ServiceRequestDraftProvider';
 import { styles } from '../styles/PageStyle';
 
 export default function ChooseElectricalIssue() {
+  const { mode } = useLocalSearchParams<{ mode?: string }>();
   const { draft, setIssueType } = useServiceRequestDraft();
   return (
     <SafeAreaView style={styles.safe}>
       <ScrollView contentContainerStyle={issueStyles.content}>
         <View style={issueStyles.header}>
-          <Link href="/dashboard" accessibilityLabel="Back to dashboard" style={issueStyles.back}>‹</Link>
+          <BackButton accessibilityLabel="Back" fallback="/dashboard" textStyle={issueStyles.back}>‹</BackButton>
           <Text accessibilityRole="header" style={issueStyles.title}>What is the problem?</Text>
         </View>
         <Text style={issueStyles.subtitle}>Select the issue that best describes your electrical problem.</Text>
@@ -19,6 +21,11 @@ export default function ChooseElectricalIssue() {
           selectedIssue={draft.issueType}
           onSelectIssue={(issue) => {
             setIssueType(issue);
+            if (mode === 'edit') {
+              if (router.canGoBack()) router.back();
+              else router.replace('/emergency-description');
+              return;
+            }
             router.push('/emergency-description');
           }}
         />

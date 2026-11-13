@@ -14,8 +14,29 @@ export default function RootLayout() {
       ServiceRequestDraftProvider,
       null,
       createElement(Stack, {
-        screenOptions: { headerShown: false, contentStyle: { backgroundColor: '#070B13' } },
+        screenOptions: ({ route }) => ({
+          animation: 'slide_from_right',
+          animationTypeForReplace:
+            getTransitionDirection(route.params) === 'left' ? 'pop' : 'push',
+          contentStyle: { backgroundColor: '#070B13' },
+          fullScreenGestureEnabled: false,
+          gestureEnabled: false,
+          headerShown: false,
+        }),
       }),
     ),
   );
+}
+
+function getTransitionDirection(params: unknown): 'left' | 'right' | undefined {
+  if (
+    !params
+    || typeof params !== 'object'
+    || !('transitionDirection' in params)
+  ) {
+    return undefined;
+  }
+
+  const direction = params.transitionDirection;
+  return direction === 'left' || direction === 'right' ? direction : undefined;
 }

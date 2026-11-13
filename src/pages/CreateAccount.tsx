@@ -67,7 +67,7 @@ export default function CreateAccount() {
             <View style={styles.windows}><View style={styles.window} /><View style={styles.window} /><View style={styles.window} /></View>
             <View style={styles.rail} />
           </View>
-          <View style={styles.topline}><Link href="/sign-in" replace style={styles.textLink}>← Sign in</Link><Text style={styles.step}>CREATE ACCOUNT</Text></View>
+          <View style={styles.topline}><Link href={{ pathname: '/sign-in', params: { transitionDirection: 'left' } }} replace style={styles.textLink}>← Sign in</Link><Text style={styles.step}>CREATE ACCOUNT</Text></View>
           <Logo />
           <View style={styles.hero}>
             <Text style={styles.eyebrow}>RELIABLE. PROFESSIONAL. LOCAL.</Text>

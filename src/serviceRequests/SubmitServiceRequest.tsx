@@ -51,15 +51,16 @@ export function SubmitServiceRequest({
       return;
     }
 
-    // Generate the ID once and keep it for retries.
-    if (!requestId.current) {
-      requestId.current = createServiceRequestId();
-    }
-
     submitting.current = true;
     setLoading(true);
 
     try {
+      // Generate the ID once and keep it for retries. This stays inside the
+      // guarded promise path so Firebase initialization errors reach the UI.
+      if (!requestId.current) {
+        requestId.current = createServiceRequestId();
+      }
+
       const savedId = await submitServiceRequest(
         request,
         requestId.current,
@@ -103,7 +104,7 @@ export function SubmitServiceRequest({
         </View>
       ) : (
         <Pressable
-          onPress={handleSubmit}
+          onPress={() => void handleSubmit()}
           disabled={loading}
           accessibilityRole="button"
           accessibilityLabel="Submit service request"

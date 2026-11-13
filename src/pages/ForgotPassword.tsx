@@ -144,7 +144,7 @@ export default function ForgotPassword() {
                 </Text>
 
                 <View style={{ marginTop: 24 }}>
-                  <Link href="/sign-in" style={styles.textLink}>
+                  <Link href={{ pathname: '/sign-in', params: { transitionDirection: 'left' } }} replace style={styles.textLink}>
                     Back to sign in
                   </Link>
                 </View>

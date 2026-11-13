@@ -3,7 +3,7 @@ import type { Attachment } from '../helpers/AttachmentRules';
 import type { ElectricalIssue } from '../helpers/CommonElectricalProblems';
 import type { RequestTiming, SchedulePreference, ServiceLocation, ServiceRequestDraft } from './ServiceRequestTypes';
 
-const EMPTY_DRAFT: ServiceRequestDraft = { timing: 'asap', issueType: null, description: '', attachments: [] };
+const EMPTY_DRAFT: ServiceRequestDraft = { timing: null, issueType: null, description: '', attachments: [] };
 
 const DraftContext = createContext<{
   draft: ServiceRequestDraft;
@@ -23,7 +23,11 @@ export function ServiceRequestDraftProvider({ children }: { children?: ReactNode
   return (
     <DraftContext.Provider value={{
       draft,
-      setTiming: (timing) => setDraft((current) => ({ ...current, timing })),
+      setTiming: (timing) => setDraft((current) => ({
+        ...current,
+        timing,
+        ...(timing === 'asap' ? { schedulePreference: undefined } : {}),
+      })),
       setSchedulePreference: (schedulePreference) => setDraft((current) => ({ ...current, schedulePreference })),
       setIssueType: (issueType) => setDraft((current) => ({ ...current, issueType })),
       setLocation: (location) => setDraft((current) => ({ ...current, location })),
