@@ -111,6 +111,8 @@ function toActiveServiceRequest(
     city: readString(data.city),
     state: readString(data.state),
     zip: readString(data.zip),
+    latitude: readNumber(data.latitude),
+    longitude: readNumber(data.longitude),
     assignedTechnician: readAssignedTechnician(data.assignedTechnician),
     estimatedArrivalAt: readDate(data.estimatedArrivalAt),
     createdAt: readDate(data.createdAt),
