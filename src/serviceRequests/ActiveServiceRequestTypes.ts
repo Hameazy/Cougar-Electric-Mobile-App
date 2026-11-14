@@ -49,6 +49,8 @@ export type ActiveServiceRequest = {
   city?: string;
   state?: string;
   zip?: string;
+  latitude?: number;
+  longitude?: number;
   assignedTechnician?: AssignedTechnician;
   estimatedArrivalAt?: Date;
   createdAt?: Date;

@@ -49,6 +49,13 @@ service cloud.firestore {
       allow delete: if false;
     }
 
+    // Customers may read only technicians explicitly marked available.
+    // Technician accounts and locations are written by the matching/admin workflow.
+    match /technicians/{technicianId} {
+      allow read: if request.auth != null && resource.data.availability == 'available';
+      allow write: if false;
+    }
+
     // Customers can send a message to the shared technician queue and read
     // messages attached to their own account.
     match /supportMessages/{messageId} {

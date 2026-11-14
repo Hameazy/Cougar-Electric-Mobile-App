@@ -10,6 +10,8 @@ import { useServiceRequestDraft } from '../serviceRequests/ServiceRequestDraftPr
 import { styles } from '../styles/PageStyle';
 import { CancelServiceRequestDialog } from '../parts/CancelServiceRequestDialog';
 import { useActiveServiceRequests } from '../serviceRequests/useActiveServiceRequests';
+import { NearbyTechnicianList } from '../parts/NearbyTechnicianList';
+import { useNearbyTechnicians } from '../technicians/useNearbyTechnicians';
 import { cancelServiceRequest } from '../serviceRequests/activeServiceRequestRepository';
 import {
   isCancellationEligibleStatus,
@@ -33,6 +35,8 @@ export default function CustomerDashboard() {
   const { resetDraft, setIssueType } = useServiceRequestDraft();
   const { user } = useAuthSession();
   const { requests, loading: loadingRequests, errorMessage: requestsError } = useActiveServiceRequests(user?.id);
+  const activeLocation = requests.find((request) => request.latitude !== undefined && request.longitude !== undefined);
+  const nearby = useNearbyTechnicians(activeLocation);
   const { notice, showNotice } = useTemporaryNotice();
   const [requestsExpanded, setRequestsExpanded] = useState(false);
   const [requestToCancel, setRequestToCancel] = useState<ActiveServiceRequest | null>(null);
@@ -168,17 +172,14 @@ export default function CustomerDashboard() {
           </View>
         )}
 
-        <View style={dashboardStyles.actions}>
-          <Pressable
-            accessibilityRole="button"
-            accessibilityHint="Nearby technician map coming soon"
-            onPress={() => showNotice('The nearby technician map is coming soon.')}
-            style={({ pressed }) => [dashboardStyles.nearbyButton, pressed && styles.buttonPressed]}
-          >
-            <Text style={dashboardStyles.nearbyText}>FIND NEARBY TECHNICIANS</Text>
-          </Pressable>
+        {!!notice && <View style={dashboardStyles.notice}><Text accessibilityLiveRegion="polite" style={dashboardStyles.noticeText}>{notice}</Text></View>}
 
-          {!!notice && <View style={dashboardStyles.notice}><Text accessibilityLiveRegion="polite" style={dashboardStyles.noticeText}>{notice}</Text></View>}
+        <View style={dashboardStyles.actions}>
+          {!activeLocation ? (
+            <View style={dashboardStyles.notice}><Text style={dashboardStyles.noticeText}>Submit a service request with a service location to find nearby technicians.</Text></View>
+          ) : (
+            <NearbyTechnicianList {...nearby} />
+          )}
         </View>
 
         <View style={dashboardStyles.shortcuts}>
