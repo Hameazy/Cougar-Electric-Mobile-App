@@ -18,6 +18,15 @@ function readNumber(value: unknown): number | undefined {
   return typeof value === 'number' && Number.isFinite(value) ? value : undefined;
 }
 
+function readTextList(value: unknown): string[] | undefined {
+  if (!Array.isArray(value)) return undefined;
+  const items = value
+    .filter((item): item is string => typeof item === 'string')
+    .map((item) => item.trim())
+    .filter(Boolean);
+  return items.length > 0 ? items : undefined;
+}
+
 function readTechnician(snapshot: QueryDocumentSnapshot<DocumentData>): AvailableTechnician | null {
   const data = snapshot.data();
   const name = typeof data.name === 'string' ? data.name.trim() : '';
@@ -35,6 +44,9 @@ function readTechnician(snapshot: QueryDocumentSnapshot<DocumentData>): Availabl
     latitude,
     longitude,
     availability: 'available',
+    specialties: readTextList(data.specialties),
+    evCertified: data.evCertified === true ? true : undefined,
+    jobsCompleted: readNumber(data.jobsCompleted),
   };
 }
 

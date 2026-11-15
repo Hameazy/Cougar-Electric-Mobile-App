@@ -137,9 +137,9 @@ export default function CustomerPayments() {
           outstandingPayments.map(renderPayment)
         ) : (
           <View style={styles.emptyCard}>
-            <Text style={styles.emptyTitle}>You're all caught up!</Text>
+            <Text style={styles.emptyTitle}>You&apos;re all caught up!</Text>
             <Text style={styles.muted}>
-              You don't have any outstanding payments.
+              You don&apos;t have any outstanding payments.
             </Text>
           </View>
         )}

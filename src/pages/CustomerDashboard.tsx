@@ -11,6 +11,7 @@ import { styles } from '../styles/PageStyle';
 import { CancelServiceRequestDialog } from '../parts/CancelServiceRequestDialog';
 import { useActiveServiceRequests } from '../serviceRequests/useActiveServiceRequests';
 import { NearbyTechnicianList } from '../parts/NearbyTechnicianList';
+import { NearbyMapPreview } from '../parts/NearbyMapPreview';
 import { useNearbyTechnicians } from '../technicians/useNearbyTechnicians';
 import { cancelServiceRequest } from '../serviceRequests/activeServiceRequestRepository';
 import {
@@ -175,8 +176,18 @@ export default function CustomerDashboard() {
         {!!notice && <View style={dashboardStyles.notice}><Text accessibilityLiveRegion="polite" style={dashboardStyles.noticeText}>{notice}</Text></View>}
 
         <View style={dashboardStyles.actions}>
+          {user && (
+            <NearbyMapPreview
+              serviceLocation={activeLocation?.latitude !== undefined && activeLocation.longitude !== undefined
+                ? { latitude: activeLocation.latitude, longitude: activeLocation.longitude }
+                : undefined}
+              serviceLabel={activeLocation?.address?.trim() || activeLocation?.city?.trim() || undefined}
+              technicians={nearby.technicians}
+              loading={nearby.loading}
+            />
+          )}
           {!activeLocation ? (
-            <View style={dashboardStyles.notice}><Text style={dashboardStyles.noticeText}>Submit a service request with a service location to find nearby technicians.</Text></View>
+            !user && <View style={dashboardStyles.notice}><Text style={dashboardStyles.noticeText}>Submit a service request with a service location to find nearby technicians.</Text></View>
           ) : (
             <NearbyTechnicianList {...nearby} />
           )}
