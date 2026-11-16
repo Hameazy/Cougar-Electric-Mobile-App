@@ -12,6 +12,7 @@ import { CancelServiceRequestDialog } from '../parts/CancelServiceRequestDialog'
 import { useActiveServiceRequests } from '../serviceRequests/useActiveServiceRequests';
 import { NearbyTechnicianList } from '../parts/NearbyTechnicianList';
 import { NearbyMapPreview } from '../parts/NearbyMapPreview';
+import { ElectricianSearchProgress } from '../parts/ElectricianSearchProgress';
 import { useNearbyTechnicians } from '../technicians/useNearbyTechnicians';
 import { cancelServiceRequest } from '../serviceRequests/activeServiceRequestRepository';
 import {
@@ -193,6 +194,14 @@ export default function CustomerDashboard() {
         )}
 
         {!!notice && <View style={dashboardStyles.notice}><Text accessibilityLiveRegion="polite" style={dashboardStyles.noticeText}>{notice}</Text></View>}
+
+        {!loadingRequests && !requestsError && requests.filter((request) => request.status === 'pending').map((request) => (
+          <ElectricianSearchProgress
+            key={request.id}
+            request={request}
+            onOpen={() => openRequestDetails(request.id)}
+          />
+        ))}
 
         <View style={dashboardStyles.actions}>
           {user && (
