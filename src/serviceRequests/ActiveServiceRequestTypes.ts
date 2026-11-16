@@ -6,6 +6,7 @@
 // be displayed safely while an assignment update is still in progress.
 export const ACTIVE_SERVICE_REQUEST_STATUSES = [
   'pending',
+  'no-match',
   'matched',
   'en-route',
   'arrived',
@@ -14,6 +15,7 @@ export const ACTIVE_SERVICE_REQUEST_STATUSES = [
 
 export const CANCELLABLE_SERVICE_REQUEST_STATUSES = [
   'pending',
+  'no-match',
   'matched',
   'en-route',
 ] as const;
@@ -67,4 +69,8 @@ export function isCancellationEligibleStatus(status: string): boolean {
   return (CANCELLABLE_SERVICE_REQUEST_STATUSES as readonly string[]).includes(
     status,
   );
+}
+
+export function isSearchRetryEligibleStatus(status: string): boolean {
+  return status === 'no-match';
 }
