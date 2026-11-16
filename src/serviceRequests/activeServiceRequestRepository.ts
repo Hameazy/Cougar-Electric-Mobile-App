@@ -20,6 +20,7 @@ import {
   ACTIVE_SERVICE_REQUEST_STATUSES,
   isActiveServiceRequestStatus,
   isCancellationEligibleStatus,
+  isSearchRetryEligibleStatus,
   type ActiveServiceRequest,
   type AssignedTechnician,
 } from './ActiveServiceRequestTypes';
@@ -234,5 +235,69 @@ export async function cancelServiceRequest(
     }
 
     throw new Error('We could not cancel this request. Please try again.');
+  }
+}
+
+export async function retryServiceRequestSearch(
+  requestId: string,
+  expectedCustomerId: string,
+): Promise<void> {
+  const customer = auth.currentUser;
+
+  if (!customer || customer.uid !== expectedCustomerId) {
+    throw new Error('Please sign in again before retrying this search.');
+  }
+
+  const requestRef = doc(db, SERVICE_REQUESTS_COLLECTION, requestId);
+
+  try {
+    await runTransaction(db, async (transaction: Transaction) => {
+      const requestSnapshot = await transaction.get(requestRef);
+
+      if (!requestSnapshot.exists()) {
+        throw new Error('This service request no longer exists.');
+      }
+
+      const request = requestSnapshot.data();
+      if (request.customerId !== customer.uid) {
+        throw new Error('You can only retry your own service requests.');
+      }
+
+      if (
+        typeof request.status !== 'string' ||
+        !isSearchRetryEligibleStatus(request.status)
+      ) {
+        throw new Error('This request is no longer waiting for a search retry.');
+      }
+
+      transaction.update(requestRef, {
+        status: 'pending',
+        updatedAt: serverTimestamp(),
+      });
+    });
+  } catch (error) {
+    if (
+      error instanceof Error &&
+      (error.message === 'This service request no longer exists.' ||
+        error.message === 'You can only retry your own service requests.' ||
+        error.message === 'This request is no longer waiting for a search retry.')
+    ) {
+      throw error;
+    }
+
+    const code = readFirebaseErrorCode(error);
+    if (code === 'permission-denied') {
+      throw new Error(
+        'Search retry is not permitted. The request may have already changed.',
+      );
+    }
+
+    if (code === 'unavailable' || code === 'deadline-exceeded') {
+      throw new Error(
+        'Unable to retry right now. Check your connection and try again.',
+      );
+    }
+
+    throw new Error('We could not retry the search. Please try again.');
   }
 }

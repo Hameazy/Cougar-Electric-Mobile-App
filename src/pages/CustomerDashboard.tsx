@@ -1,5 +1,5 @@
 import { router } from 'expo-router';
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import type { ElectricalIssue } from '../helpers/CommonElectricalProblems';
@@ -28,6 +28,7 @@ const ISSUE_SHORTCUTS: { label: string; issue: ElectricalIssue }[] = [
 ];
 
 function formatRequestStatus(status: string): string {
+  if (status === 'no-match') return 'No electrician accepted';
   return status.replaceAll('-', ' ').replace(/\b\w/g, (letter) => letter.toUpperCase());
 }
 
@@ -42,6 +43,24 @@ export default function CustomerDashboard() {
   const [requestToCancel, setRequestToCancel] = useState<ActiveServiceRequest | null>(null);
   const [cancelling, setCancelling] = useState(false);
   const [cancellationError, setCancellationError] = useState('');
+  const routedNoMatchRequestId = useRef<string | null>(null);
+
+  const noMatchRequestId = requests.find((request) => request.status === 'no-match')?.id;
+
+  useEffect(() => {
+    if (!noMatchRequestId) {
+      routedNoMatchRequestId.current = null;
+      return;
+    }
+
+    if (routedNoMatchRequestId.current === noMatchRequestId) return;
+
+    routedNoMatchRequestId.current = noMatchRequestId;
+    router.replace({
+      pathname: '/service-request/[requestId]/no-match',
+      params: { requestId: noMatchRequestId },
+    });
+  }, [noMatchRequestId]);
 
   function startRequest(issue?: ElectricalIssue) {
     resetDraft();
