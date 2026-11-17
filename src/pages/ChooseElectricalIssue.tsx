@@ -13,7 +13,7 @@ export default function ChooseElectricalIssue() {
     <SafeAreaView style={styles.safe}>
       <ScrollView contentContainerStyle={issueStyles.content}>
         <View style={issueStyles.header}>
-          <BackButton accessibilityLabel="Back" fallback="/dashboard" textStyle={issueStyles.back}>‹</BackButton>
+          <BackButton accessibilityLabel="Back" fallback="/dashboard" textStyle={issueStyles.back}>←</BackButton>
           <Text accessibilityRole="header" style={issueStyles.title}>What is the problem?</Text>
         </View>
         <Text style={issueStyles.subtitle}>Select the issue that best describes your electrical problem.</Text>
@@ -35,9 +35,9 @@ export default function ChooseElectricalIssue() {
 }
 
 const issueStyles = StyleSheet.create({
-  content: { alignSelf: 'center', maxWidth: 600, padding: 22, paddingBottom: 40, width: '100%' },
-  header: { alignItems: 'center', flexDirection: 'row', marginBottom: 24, marginTop: 4 },
-  back: { backgroundColor: '#172033', borderRadius: 11, color: '#F8FAFC', fontSize: 30, height: 42, lineHeight: 38, marginRight: 12, overflow: 'hidden', textAlign: 'center', width: 42 },
-  title: { color: '#F8FAFC', flex: 1, fontSize: 20, fontWeight: '800' },
-  subtitle: { color: '#8997AC', fontSize: 13, lineHeight: 19, marginBottom: 18 },
+  content: { alignSelf: 'center', maxWidth: 600, padding: 26, paddingBottom: 40, width: '100%' },
+  header: { alignItems: 'center', flexDirection: 'row', marginBottom: 32, marginTop: 8 },
+  back: { backgroundColor: '#131B2B', borderColor: '#2D374A', borderRadius: 13, borderWidth: 1, color: '#F8FAFC', fontSize: 25, height: 52, lineHeight: 48, marginRight: 15, overflow: 'hidden', textAlign: 'center', width: 52 },
+  title: { color: '#F8FAFC', flex: 1, fontSize: 22, fontWeight: '900' },
+  subtitle: { color: '#8997AC', fontSize: 15, lineHeight: 22, marginBottom: 22 },
 });

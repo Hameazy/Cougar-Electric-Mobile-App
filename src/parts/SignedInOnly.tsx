@@ -4,7 +4,7 @@ import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
 import type { AuthUser } from '../auth/AuthenticationTypes';
 import { useAuthSession } from '../helpers/useAuthSession';
 
-export function SignedInOnly({ returnTo, children }: { returnTo: 'my-jobs' | 'messages'; children: (user: AuthUser) => ReactNode }) {
+export function SignedInOnly({ returnTo, children }: { returnTo: 'my-jobs' | 'messages' | 'payments'; children: (user: AuthUser) => ReactNode }) {
   const { user, loading } = useAuthSession();
 
   if (loading) return <View style={lockedStyles.loading}><ActivityIndicator color="#F5B900" /></View>;
@@ -14,7 +14,7 @@ export function SignedInOnly({ returnTo, children }: { returnTo: 'my-jobs' | 'me
     <View style={lockedStyles.card}>
       <View style={lockedStyles.lock}><Text style={lockedStyles.lockIcon}>⌑</Text></View>
       <Text accessibilityRole="header" style={lockedStyles.title}>Sign in to continue</Text>
-      <Text style={lockedStyles.body}>Your service activity and conversations are private. Sign in to see information connected to your account.</Text>
+      <Text style={lockedStyles.body}>Your service activity, conversations, and payment information are private. Sign in to continue.</Text>
       <Link href={{ pathname: '/sign-in', params: { returnTo } }} style={lockedStyles.button}>SIGN IN</Link>
       <Link href="/register" style={lockedStyles.link}>Create an account</Link>
     </View>

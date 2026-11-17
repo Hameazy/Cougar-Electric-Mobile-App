@@ -92,6 +92,7 @@ export default function SignIn({ accountTab = false }: { accountTab?: boolean })
       if (accountTab) return;
       if (returnTo === 'my-jobs') router.dismissTo('/my-jobs');
       else if (returnTo === 'messages') router.dismissTo('/messages');
+      else if (returnTo === 'payments') router.dismissTo('/payments');
       else goToDashboard();
     } catch (error) {
       recordFailure(error);

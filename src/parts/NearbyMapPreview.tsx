@@ -222,12 +222,10 @@ export function NearbyMapPreview({
         : 'Open the map to search another area.';
 
   const openMap = () => router.push('/technician-map');
-  const spokenDemo = showingDemo ? ' Demo data, these sample electricians are not real.' : '';
-
   return (
     <Pressable
       accessibilityRole="button"
-      accessibilityLabel={`${pillText} near ${placeText}. ${title}. ${detail}.${spokenDemo} Open map.`}
+      accessibilityLabel={`${pillText} near ${placeText}. ${title}. ${detail}. Open map.`}
       onPress={openMap}
       style={({ pressed }) => [previewStyles.card, pressed && previewStyles.cardPressed]}
     >
@@ -260,11 +258,6 @@ export function NearbyMapPreview({
             <LiveDot active={!loading && count > 0} />
             <Text style={previewStyles.pillText} numberOfLines={1}>{pillText}</Text>
           </View>
-          {showingDemo && (
-            <View style={previewStyles.demoTag}>
-              <Text style={previewStyles.demoTagText}>DEMO</Text>
-            </View>
-          )}
         </View>
 
         <View style={previewStyles.placeChip}>
@@ -278,7 +271,6 @@ export function NearbyMapPreview({
         <View style={previewStyles.copy}>
           <Text style={previewStyles.title} numberOfLines={1}>{title}</Text>
           <Text style={previewStyles.detail} numberOfLines={1}>{detail}</Text>
-          {showingDemo && <Text style={previewStyles.demoNote}>Sample electricians for testing, not real people.</Text>}
         </View>
         <View style={previewStyles.openButton}>
           <Text style={previewStyles.openText}>Open map</Text>
@@ -329,18 +321,6 @@ const previewStyles = StyleSheet.create({
   liveHalo: { backgroundColor: MAP_COLORS.available, borderRadius: 5, height: 10, position: 'absolute', width: 10 },
   liveDot: { backgroundColor: MAP_COLORS.available, borderRadius: 4, height: 8, width: 8 },
   liveDotIdle: { backgroundColor: MAP_COLORS.busy },
-  demoTag: {
-    backgroundColor: '#3A2B05',
-    borderColor: '#6B4F08',
-    borderRadius: 8,
-    borderWidth: 1,
-    boxShadow: FLOAT_SHADOW,
-    marginLeft: 'auto',
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-  },
-  demoTagText: { color: MAP_COLORS.volt, fontSize: 11, fontWeight: '800', letterSpacing: 0.6 },
-
   placeChip: {
     alignItems: 'center',
     backgroundColor: 'rgba(7, 11, 19, 0.86)',
@@ -378,7 +358,6 @@ const previewStyles = StyleSheet.create({
   copy: { flex: 1, gap: 2, minWidth: 0 },
   title: { color: MAP_COLORS.text, fontSize: 15, fontWeight: '800' },
   detail: { color: '#AAB5C7', fontSize: 13 },
-  demoNote: { color: MAP_COLORS.volt, fontSize: 11, fontWeight: '700', marginTop: 2 },
   openButton: { alignItems: 'center', backgroundColor: MAP_COLORS.volt, borderRadius: 12, flexDirection: 'row', gap: 4, paddingHorizontal: 14, paddingVertical: 10 },
   openText: { color: MAP_COLORS.night, fontSize: 13, fontWeight: '800' },
   openArrow: { color: MAP_COLORS.night, fontSize: 18, fontWeight: '800', lineHeight: 18, marginTop: -2 },

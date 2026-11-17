@@ -57,7 +57,7 @@ export function BottomNavigation({
 }
 
 const navStyles = StyleSheet.create({
-  bar: { backgroundColor: '#070D18', borderTopColor: '#293244', borderTopWidth: 1, flexDirection: 'row', paddingTop: 10 },
+  bar: { backgroundColor: '#07101F', borderTopColor: '#293244', borderTopWidth: 1, flexDirection: 'row', paddingTop: 10 },
   item: { alignItems: 'center', flex: 1 },
   icon: { color: '#61708A', fontSize: 23 },
   label: { color: '#61708A', fontSize: 10, marginTop: 4 },

@@ -18,7 +18,7 @@ export default function RootLayout() {
           animation: 'slide_from_right',
           animationTypeForReplace:
             getTransitionDirection(route.params) === 'left' ? 'pop' : 'push',
-          contentStyle: { backgroundColor: '#070B13' },
+          contentStyle: { backgroundColor: '#07101F' },
           fullScreenGestureEnabled: false,
           gestureEnabled: false,
           headerShown: false,

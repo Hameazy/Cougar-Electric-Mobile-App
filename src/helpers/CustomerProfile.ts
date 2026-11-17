@@ -52,3 +52,19 @@ export async function createCustomerProfile(
     updatedAt: serverTimestamp(),
   });
 }
+
+export async function getCustomerProfile(uid: string): Promise<CustomerProfile | null> {
+  const snapshot = await getDoc(doc(db, CUSTOMERS_COLLECTION, uid));
+  if (!snapshot.exists()) return null;
+
+  const data = snapshot.data();
+  return {
+    fullName: typeof data.fullName === 'string' ? data.fullName : '',
+    email: typeof data.email === 'string' ? data.email : '',
+    phone: typeof data.phone === 'string' ? data.phone : '',
+    address: typeof data.address === 'string' ? data.address : '',
+    city: typeof data.city === 'string' ? data.city : '',
+    state: typeof data.state === 'string' ? data.state : '',
+    zip: typeof data.zip === 'string' ? data.zip : '',
+  };
+}
