@@ -12,7 +12,7 @@ export default function CustomerTabsLayout() {
       screenOptions={{
         headerShown: false,
         lazy: false,
-        sceneStyle: { backgroundColor: '#070B13' },
+        sceneStyle: { backgroundColor: '#07101F' },
         sceneStyleInterpolator: ({ current }) => ({
           sceneStyle: {
             transform: [

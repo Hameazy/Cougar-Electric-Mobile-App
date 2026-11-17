@@ -26,10 +26,10 @@ function driveLabel(drive: DriveInfo): string {
   return drive.source === 'road' ? formatShortMinutes(drive.minutes) : `~${formatShortMinutes(drive.minutes)}`;
 }
 
-function Tag({ text, tone = 'plain' }: { text: string; tone?: 'plain' | 'ev' | 'demo' }) {
+function Tag({ text, tone = 'plain' }: { text: string; tone?: 'plain' | 'ev' }) {
   return (
-    <View style={[cardStyles.tag, tone === 'ev' && cardStyles.tagEv, tone === 'demo' && cardStyles.tagDemo]}>
-      <Text style={[cardStyles.tagText, tone === 'ev' && cardStyles.tagTextEv, tone === 'demo' && cardStyles.tagTextDemo]}>{text}</Text>
+    <View style={[cardStyles.tag, tone === 'ev' && cardStyles.tagEv]}>
+      <Text style={[cardStyles.tagText, tone === 'ev' && cardStyles.tagTextEv]}>{text}</Text>
     </View>
   );
 }
@@ -80,7 +80,6 @@ export function TechnicianRow({
       <View style={cardStyles.rowCopy}>
         <View style={cardStyles.nameLine}>
           <Text style={cardStyles.rowName} numberOfLines={1}>{technician.name}</Text>
-          {technician.isDemo && <Tag text="Demo" tone="demo" />}
         </View>
         <Text style={cardStyles.rowMeta} numberOfLines={1}>
           <Text style={[cardStyles.rowStatus, busy && cardStyles.rowStatusBusy]}>{busy ? 'Busy' : 'Available'}</Text>
@@ -131,7 +130,6 @@ export function TechnicianDetails({
         <View style={cardStyles.rowCopy}>
           <View style={cardStyles.nameLine}>
             <Text style={cardStyles.detailName} numberOfLines={1}>{technician.name}</Text>
-            {technician.isDemo && <Tag text="Demo" tone="demo" />}
           </View>
           <Text style={[cardStyles.detailMeta, busy && cardStyles.detailMetaBusy]}>
             {busy ? 'On another job' : 'Available now'}
@@ -179,11 +177,9 @@ export function TechnicianDetails({
 
       {!compact && (
         <Text style={cardStyles.note}>
-          {technician.isDemo
-            ? 'This is sample data for testing. Real electricians appear here once they are online.'
-            : hasActiveRequest
-              ? 'We match your request to the closest available electrician. Your exact arrival time shows once someone accepts.'
-              : 'Send a request and we will match you with the closest available electrician.'}
+          {hasActiveRequest
+            ? 'We match your request to the closest available electrician. Your exact arrival time shows once someone accepts.'
+            : 'Send a request and we will match you with the closest available electrician.'}
         </Text>
       )}
 
@@ -274,8 +270,6 @@ const cardStyles = StyleSheet.create({
   tagText: { color: '#C7D2E3', fontSize: 11, fontWeight: '700' },
   tagEv: { backgroundColor: '#241B4A' },
   tagTextEv: { color: '#D6CBFF' },
-  tagDemo: { backgroundColor: '#3A2B05' },
-  tagTextDemo: { color: MAP_COLORS.volt },
 
   detailCard: { backgroundColor: MAP_COLORS.panel, borderColor: MAP_COLORS.volt, borderRadius: 20, borderWidth: 1, gap: 14, padding: 16 },
   detailTop: { alignItems: 'center', flexDirection: 'row', gap: 12 },

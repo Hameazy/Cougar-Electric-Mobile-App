@@ -46,6 +46,77 @@ function DetailRow({ label, value, accent = false }: { label: string; value: str
   );
 }
 
+function statusHeading(status: ActiveServiceRequest['status']): string {
+  if (status === 'pending') return 'Finding a technician…';
+  if (status === 'matched') return 'Technician matched!';
+  if (status === 'en-route') return 'Technician on the way!';
+  if (status === 'arrived' || status === 'in-progress') return 'On Site';
+  return 'Request Details';
+}
+
+function RequestStatusOverview({ request }: { request: ActiveServiceRequest }) {
+  const onSite = request.status === 'arrived' || request.status === 'in-progress';
+  const assigned = request.status === 'matched' || request.status === 'en-route' || onSite;
+  return (
+    <View style={detailStyles.statusOverview}>
+      <View style={detailStyles.statusHeadingRow}>
+        <Text accessibilityRole="header" style={detailStyles.statusHeading}>{statusHeading(request.status)}</Text>
+        {onSite && <Text style={detailStyles.statusPill}>IN PROGRESS</Text>}
+      </View>
+      <Text style={detailStyles.statusSubtitle}>
+        {request.status === 'pending'
+          ? 'This usually takes less than 30 seconds.'
+          : request.status === 'en-route'
+            ? 'Your Cougar Electric technician is en route to your location.'
+            : onSite
+              ? 'Your technician has arrived and is assessing the issue.'
+              : 'A Cougar Electric technician has accepted your request.'}
+      </Text>
+
+      {request.status === 'pending' && (
+        <View style={detailStyles.progressList}>
+          <StatusStep state="done" label="Finding nearby technicians…" />
+          <StatusStep state="current" label="Notifying available technicians…" />
+          <StatusStep state="waiting" label="Waiting for a technician to accept…" />
+        </View>
+      )}
+
+      {assigned && request.assignedTechnician && (
+        <View style={detailStyles.technicianSummary}>
+          <View style={detailStyles.technicianAvatar}><Text style={detailStyles.technicianInitial}>{request.assignedTechnician.name?.charAt(0) || 'CE'}</Text></View>
+          <View style={detailStyles.technicianCopy}>
+            <Text style={detailStyles.technicianName}>{request.assignedTechnician.name || 'Cougar Electric technician'}</Text>
+            <Text style={detailStyles.technicianMeta}>{formatRating(request.assignedTechnician.rating)}</Text>
+            {request.status === 'en-route' && <Text style={detailStyles.arrivalText}>{formatArrival(request.estimatedArrivalAt)}</Text>}
+          </View>
+        </View>
+      )}
+
+      {onSite && (
+        <View style={detailStyles.progressList}>
+          <StatusStep state="done" label="Technician on site" />
+          <StatusStep state="current" label={request.status === 'in-progress' ? 'Work in progress' : 'Diagnosing the issue'} />
+          <StatusStep state="waiting" label="Preparing estimate" />
+          <StatusStep state="waiting" label="Awaiting your approval" />
+          <StatusStep state="waiting" label="Completing work" />
+          <StatusStep state="waiting" label="Finalizing payment" />
+        </View>
+      )}
+    </View>
+  );
+}
+
+function StatusStep({ state, label }: { state: 'done' | 'current' | 'waiting'; label: string }) {
+  return (
+    <View style={detailStyles.statusStep}>
+      <View style={[detailStyles.statusMarker, state === 'done' && detailStyles.statusMarkerDone, state === 'current' && detailStyles.statusMarkerCurrent]}>
+        <Text style={[detailStyles.statusMarkerText, state === 'waiting' && detailStyles.statusMarkerWaiting]}>{state === 'done' ? '✓' : state === 'current' ? '•' : ''}</Text>
+      </View>
+      <Text style={[detailStyles.statusStepText, state === 'waiting' && detailStyles.statusStepWaiting]}>{label}</Text>
+    </View>
+  );
+}
+
 export default function ActiveServiceRequestDetails() {
   const { requestId } = useLocalSearchParams<{ requestId: string }>();
   const { user, loading: loadingAuth } = useAuthSession();
@@ -91,6 +162,7 @@ export default function ActiveServiceRequestDetails() {
 
         {request && (
           <>
+            <RequestStatusOverview request={request} />
             <View style={detailStyles.card}>
               <Text selectable style={detailStyles.requestId}>REQUEST #{request.id.slice(0, 8).toUpperCase()}</Text>
               <DetailRow label="ELECTRICAL ISSUE" value={request.issueType || 'Electrical issue unavailable'} />
@@ -148,4 +220,25 @@ const detailStyles = StyleSheet.create({
   pendingBox: { backgroundColor: '#17233A', borderRadius: 12, padding: 14 },
   pendingTitle: { color: '#EAF1FA', fontSize: 15, fontWeight: '700' },
   pendingText: { color: '#AAB5C7', fontSize: 13, lineHeight: 20, marginTop: 5 },
+  statusOverview: { gap: 18, marginBottom: 2 },
+  statusHeadingRow: { alignItems: 'center', flexDirection: 'row', gap: 12, justifyContent: 'space-between' },
+  statusHeading: { color: '#F8FAFC', flex: 1, fontSize: 26, fontWeight: '900' },
+  statusPill: { backgroundColor: '#342B12', borderColor: '#8A6D12', borderRadius: 999, borderWidth: 1, color: '#F5C542', fontSize: 10, fontWeight: '900', overflow: 'hidden', paddingHorizontal: 12, paddingVertical: 7 },
+  statusSubtitle: { color: '#91A0B7', fontSize: 15, lineHeight: 22 },
+  progressList: { gap: 18, paddingVertical: 4 },
+  statusStep: { alignItems: 'center', flexDirection: 'row', gap: 14 },
+  statusMarker: { alignItems: 'center', borderColor: '#3B465A', borderRadius: 20, borderWidth: 2, height: 38, justifyContent: 'center', width: 38 },
+  statusMarkerDone: { backgroundColor: '#20C875', borderColor: '#20C875' },
+  statusMarkerCurrent: { backgroundColor: '#F5B900', borderColor: '#58491C' },
+  statusMarkerText: { color: '#07101F', fontSize: 18, fontWeight: '900' },
+  statusMarkerWaiting: { color: '#6C788E' },
+  statusStepText: { color: '#F8FAFC', flex: 1, fontSize: 15, fontWeight: '800' },
+  statusStepWaiting: { color: '#77849A' },
+  technicianSummary: { alignItems: 'center', backgroundColor: '#111A2C', borderColor: '#303C51', borderRadius: 16, borderWidth: 1, flexDirection: 'row', padding: 18 },
+  technicianAvatar: { alignItems: 'center', backgroundColor: '#18B968', borderRadius: 34, height: 68, justifyContent: 'center', width: 68 },
+  technicianInitial: { color: '#FFFFFF', fontSize: 24, fontWeight: '900' },
+  technicianCopy: { flex: 1, marginLeft: 16 },
+  technicianName: { color: '#F8FAFC', fontSize: 19, fontWeight: '800' },
+  technicianMeta: { color: '#AAB5C7', fontSize: 13, marginTop: 7 },
+  arrivalText: { color: '#44D98C', fontSize: 14, fontWeight: '800', marginTop: 9 },
 });

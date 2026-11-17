@@ -29,7 +29,7 @@ export function AttachmentPicker({ value, onChange }: Props) {
   const left = MAX_ATTACHMENTS - value.length;
   const full = left <= 0;
 
-  async function pick(from: 'library' | 'camera') {
+  async function pick(from: 'library' | 'camera', mediaTypes: ImagePicker.MediaType[] = ['images', 'videos']) {
     setMessage('');
 
     // Phones ask the customer first. On web these calls just return "granted".
@@ -44,7 +44,7 @@ export function AttachmentPicker({ value, onChange }: Props) {
     }
 
     const options: ImagePicker.ImagePickerOptions = {
-      mediaTypes: ['images', 'videos'],
+      mediaTypes,
       quality: 0.7, // smaller files, still clear enough for the electrician
       videoMaxDuration: MAX_VIDEO_SECONDS,
       allowsMultipleSelection: from === 'library',
@@ -80,16 +80,26 @@ export function AttachmentPicker({ value, onChange }: Props) {
       <ErrorBanner message={message} />
 
       {value.length === 0 ? (
-        // Empty state: one big, easy target instead of a row of small buttons.
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel="Add photos or a video"
-          onPress={() => pick('library')}
-          style={({ pressed }) => [styles.dropZone, pressed && styles.dropZonePressed]}
-        >
-          <View style={styles.dropIcon}><Text style={styles.dropIconText}>+</Text></View>
-          <Text style={styles.dropTitle}>Add photos or a video</Text>
-        </Pressable>
+        <View style={styles.emptyActions}>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Add photos"
+            onPress={() => pick('library', ['images'])}
+            style={({ pressed }) => [styles.mediaAction, pressed && styles.dropZonePressed]}
+          >
+            <Text style={styles.mediaActionIcon}>▣</Text>
+            <Text style={styles.mediaActionText}>Add Photos</Text>
+          </Pressable>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Add video"
+            onPress={() => pick('library', ['videos'])}
+            style={({ pressed }) => [styles.mediaAction, pressed && styles.dropZonePressed]}
+          >
+            <Text style={styles.mediaActionIcon}>▹</Text>
+            <Text style={styles.mediaActionText}>Add Video</Text>
+          </Pressable>
+        </View>
       ) : (
         <View style={styles.grid}>
           {value.map((file) => (
@@ -158,21 +168,11 @@ const styles = StyleSheet.create({
   optionalPill: { borderWidth: 1, borderColor: '#3A4250', borderRadius: 999, paddingHorizontal: 10, paddingVertical: 3 },
   optionalText: { color: '#99A7BC', fontSize: 9, letterSpacing: 1.2, fontWeight: '700' },
 
-  dropZone: {
-    marginTop: 4,
-    alignItems: 'center',
-    paddingVertical: 28,
-    paddingHorizontal: 16,
-    borderRadius: 16,
-    borderWidth: 1.5,
-    borderStyle: 'dashed',
-    borderColor: '#4A5363',
-    backgroundColor: '#0A101B',
-  },
+  emptyActions: { flexDirection: 'row', gap: 12, marginTop: 10 },
+  mediaAction: { alignItems: 'center', backgroundColor: '#111827', borderColor: '#4A5363', borderRadius: 16, borderStyle: 'dashed', borderWidth: 1.5, flex: 1, justifyContent: 'center', minHeight: 126, padding: 16 },
+  mediaActionIcon: { color: GOLD, fontSize: 27 },
+  mediaActionText: { color: '#D8E0EC', fontSize: 14, fontWeight: '700', marginTop: 12 },
   dropZonePressed: { borderColor: GOLD, backgroundColor: '#1C1C12' },
-  dropIcon: { width: 52, height: 52, borderRadius: 26, borderWidth: 1.5, borderColor: GOLD, alignItems: 'center', justifyContent: 'center', marginBottom: 12 },
-  dropIconText: { color: GOLD, fontSize: 28, lineHeight: 30, fontWeight: '300' },
-  dropTitle: { color: '#FFFFFF', fontSize: 16, fontWeight: '700' },
 
   grid: { flexDirection: 'row', flexWrap: 'wrap', gap: 10, marginTop: 4 },
   tile: { width: '31%', aspectRatio: 1, borderRadius: 14, overflow: 'hidden', backgroundColor: '#0A101B', borderWidth: 1, borderColor: '#3A4250' },

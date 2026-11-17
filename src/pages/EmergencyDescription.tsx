@@ -71,7 +71,7 @@ export default function EmergencyDescription() {
       <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
         <ScrollView ref={scrollView} contentContainerStyle={detailStyles.content} keyboardShouldPersistTaps="handled">
           <View style={detailStyles.header}>
-            <BackButton accessibilityLabel="Back" fallback="/choose-electrical-issue" textStyle={detailStyles.back}>‹</BackButton>
+            <BackButton accessibilityLabel="Back" fallback="/choose-electrical-issue" textStyle={detailStyles.back}>←</BackButton>
             <Text accessibilityRole="header" style={detailStyles.title}>Tell us more</Text>
           </View>
           <Text style={detailStyles.subtitle}>Add a description, photos or video to help our technicians prepare.</Text>
@@ -101,6 +101,18 @@ export default function EmergencyDescription() {
 
           <View style={detailStyles.attachments}>
             <AttachmentPicker value={draft.attachments} onChange={setAttachments} />
+          </View>
+
+          <View style={detailStyles.locationSection}>
+            <Text style={detailStyles.locationLabel}>SERVICE LOCATION</Text>
+            <View style={detailStyles.locationCard}>
+              <View style={detailStyles.locationIcon}><Text style={detailStyles.locationIconText}>⌖</Text></View>
+              <View style={detailStyles.locationCopy}>
+                <Text style={detailStyles.locationAddress}>{draft.location?.address || 'Choose your service location'}</Text>
+                <Text style={detailStyles.locationCity}>{draft.location ? `${draft.location.city}, ${draft.location.state} ${draft.location.zip}` : 'You will add this on the next step.'}</Text>
+              </View>
+              {draft.location && <Link href="/emergency-location" style={detailStyles.change}>Change</Link>}
+            </View>
           </View>
 
           <View
@@ -156,25 +168,33 @@ export default function EmergencyDescription() {
 }
 
 const detailStyles = StyleSheet.create({
-  content: { alignSelf: 'center', maxWidth: 600, padding: 22, paddingBottom: 40, width: '100%' },
-  header: { alignItems: 'center', flexDirection: 'row', marginBottom: 18, marginTop: 4 },
-  back: { backgroundColor: '#172033', borderRadius: 11, color: '#F8FAFC', fontSize: 30, height: 42, lineHeight: 38, marginRight: 12, overflow: 'hidden', textAlign: 'center', width: 42 },
-  title: { color: '#F8FAFC', flex: 1, fontSize: 20, fontWeight: '800' },
-  subtitle: { color: '#8997AC', fontSize: 13, lineHeight: 19, marginBottom: 20 },
+  content: { alignSelf: 'center', maxWidth: 600, padding: 26, paddingBottom: 40, width: '100%' },
+  header: { alignItems: 'center', flexDirection: 'row', marginBottom: 32, marginTop: 8 },
+  back: { backgroundColor: '#131B2B', borderColor: '#2D374A', borderRadius: 13, borderWidth: 1, color: '#F8FAFC', fontSize: 25, height: 52, lineHeight: 48, marginRight: 15, overflow: 'hidden', textAlign: 'center', width: 52 },
+  title: { color: '#F8FAFC', flex: 1, fontSize: 22, fontWeight: '900' },
+  subtitle: { color: '#8997AC', fontSize: 15, lineHeight: 22, marginBottom: 20 },
   issueRow: { alignItems: 'center', backgroundColor: '#0D1727', borderColor: '#263349', borderRadius: 14, borderWidth: 1, flexDirection: 'row', justifyContent: 'space-between', marginBottom: 12, padding: 14 },
   issueValue: { color: '#F8FAFC', flex: 1, fontSize: 15, fontWeight: '700' },
   change: { color: '#F5B900', fontSize: 12, fontWeight: '800', padding: 8 },
-  textArea: { backgroundColor: '#111827', borderColor: '#3A4250', borderRadius: 14, borderWidth: 1, minHeight: 150 },
+  textArea: { backgroundColor: '#111827', borderColor: '#3A4250', borderRadius: 16, borderWidth: 1, minHeight: 176 },
   invalid: { borderColor: '#FF6B7F' },
-  input: { color: '#F8FAFC', flex: 1, fontSize: 15, lineHeight: 22, minHeight: 120, padding: 14 },
+  input: { color: '#F8FAFC', flex: 1, fontSize: 16, lineHeight: 24, minHeight: 142, padding: 18 },
   count: { color: '#7F8BA0', fontSize: 10, paddingBottom: 10, paddingRight: 12, textAlign: 'right' },
   error: { color: '#FF9A91', fontSize: 12, marginTop: 6 },
   attachments: { marginBottom: 22, marginTop: 14 },
+  locationSection: { marginBottom: 20 },
+  locationLabel: { color: '#718099', fontSize: 11, fontWeight: '800', letterSpacing: 1.5, marginBottom: 10 },
+  locationCard: { alignItems: 'center', backgroundColor: '#0D1727', borderColor: '#263349', borderRadius: 14, borderWidth: 1, flexDirection: 'row', minHeight: 76, padding: 12 },
+  locationIcon: { alignItems: 'center', backgroundColor: '#102A50', borderColor: '#245B9D', borderRadius: 11, borderWidth: 1, height: 44, justifyContent: 'center', width: 44 },
+  locationIconText: { color: '#58A6FF', fontSize: 24 },
+  locationCopy: { flex: 1, marginLeft: 12 },
+  locationAddress: { color: '#F8FAFC', fontSize: 15, fontWeight: '800' },
+  locationCity: { color: '#8C9AB0', fontSize: 13, marginTop: 4 },
   timingSection: { marginTop: 4 },
   timingLabel: { color: '#F5B900', fontSize: 11, fontWeight: '800', letterSpacing: 1.2, marginBottom: 9 },
   timingControl: { alignItems: 'center', backgroundColor: '#111722', borderColor: '#3A4250', borderRadius: 14, borderWidth: 1, flexDirection: 'row', justifyContent: 'space-between', minHeight: 62, paddingHorizontal: 15, paddingVertical: 11 },
   timingValue: { color: '#F8FAFC', flex: 1, fontSize: 13, fontWeight: '700', lineHeight: 19, marginRight: 12 },
   timingAction: { color: '#F5B900', fontSize: 11, fontWeight: '800', letterSpacing: 0.7 },
-  continueButton: { alignItems: 'center', backgroundColor: '#F5B900', borderRadius: 14, justifyContent: 'center', marginTop: 16, minHeight: 58 },
-  continueText: { color: '#070B13', fontSize: 13, fontWeight: '900', letterSpacing: 1 },
+  continueButton: { alignItems: 'center', backgroundColor: '#F5B900', borderRadius: 14, justifyContent: 'center', marginTop: 16, minHeight: 64 },
+  continueText: { color: '#070B13', fontSize: 15, fontWeight: '900', letterSpacing: 1.4 },
 });

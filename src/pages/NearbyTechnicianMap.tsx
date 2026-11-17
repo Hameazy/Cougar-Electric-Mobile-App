@@ -524,11 +524,6 @@ function NearbyTechnicianMapScreen({ onRetry }: { onRetry: () => void }) {
             {subline}
           </Text>
         </View>
-        {showingDemo && (
-          <View accessibilityLabel="Demo data. These sample electricians are not real." style={pageStyles.demoTag}>
-            <Text style={pageStyles.demoTagText}>DEMO</Text>
-          </View>
-        )}
       </View>
       {chips}
     </View>
@@ -661,11 +656,6 @@ function NearbyTechnicianMapScreen({ onRetry }: { onRetry: () => void }) {
         >
           {spot && activeRequest && <RequestStatusTracker request={activeRequest} />}
 
-          {showingDemo && spot && (
-            <Text accessibilityRole="alert" style={pageStyles.demoNote}>
-              Demo data: these sample electricians are made up for testing and are not real people.
-            </Text>
-          )}
 
           {spot && technicians.length > 0 && (
             <DistanceRail technicians={technicians} selectedId={selectedId} onSelect={select} />
@@ -779,9 +769,6 @@ const pageStyles = StyleSheet.create({
   sheetHeader: { gap: 14, paddingBottom: 14, paddingHorizontal: 18, userSelect: 'none' },
   headlineRow: { alignItems: 'flex-start', flexDirection: 'row', gap: 12, justifyContent: 'space-between' },
   headlineCopy: { flex: 1, minWidth: 0 },
-  demoTag: { backgroundColor: '#3A2B05', borderColor: '#6B4F08', borderRadius: 8, borderWidth: 1, paddingHorizontal: 8, paddingVertical: 4 },
-  demoTagText: { color: MAP_COLORS.volt, fontSize: 11, fontWeight: '800', letterSpacing: 0.6 },
-  demoNote: { backgroundColor: '#3A2B05', borderColor: '#6B4F08', borderRadius: 10, borderWidth: 1, color: MAP_COLORS.volt, fontSize: 13, fontWeight: '700', lineHeight: 18, padding: 10 },
   headline: { color: MAP_COLORS.text, fontSize: 21, fontWeight: '800', letterSpacing: -0.3 },
   subline: { color: '#AAB5C7', fontSize: 14, lineHeight: 20, marginTop: 3 },
   errorText: { color: '#FFB1A8' },
