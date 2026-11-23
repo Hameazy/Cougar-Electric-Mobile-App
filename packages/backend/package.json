@@ -1,0 +1,1 @@
+{"name":"@cougar/backend","version":"1.0.0","private":true,"main":"firebaseApp.js","types":"firebaseApp.d.ts","peerDependencies":{"firebase":"^13.0.0"}}

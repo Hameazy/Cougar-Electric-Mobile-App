@@ -1,32 +1,76 @@
-# Cougar-Electric-Mobile-App
-CSC 190/191 senior project — a React Native mobile application developed for Cougar Electric Inc. to streamline company operations.
+# Cougar Electric
 
-## Customer registration
+<img src="apps/customer/assets/cougar-electric-mascot.png" alt="Cougar Electric logo" width="120" />
 
-Run `npm install` and `npm start`, then open with a compatible Expo Go client or development build. Use `npm run web` for the browser version. The initial Expo Router screen is sign-in at `src/app/index.tsx`. “Create here” opens `src/app/register.tsx`; registration includes links back to sign-in.
+Built by Agile Avengers for our CSC 190/191 senior project.
 
-The registration form collects a name, email, phone, US service address, password, and password confirmation. It validates required fields, contact formats, ZIP code, password length (12 characters), and matching passwords.
+## About
 
-The interface uses the reference's near-black and navy palette, yellow accents, white headings, and outlined panels. The lightning badge is a placeholder for the final Cougar logo.
+This app helps customers request electrical service and find an available electrician. Customers can share their problem and location. The technician app will help electricians view requests and manage their jobs.
 
-This is a frontend-only preview. Submitting valid registration details shows a local confirmation and a link to sign-in. Sign-in validates email and a nonempty password, then displays a local welcome screen. Neither flow authenticates with a server or makes API calls. No account is created and no information is saved. The unused API helper in `src/helpers/AccountHelp.ts` is available for future backend integration; setting an endpoint does not enable it in the current screen.
+## How to run
 
-Run `npm run lint` and `npm run typecheck` to check changes.
+Install Node.js 24 and get the Firebase `.env` settings from the team for each app folder. From the main project folder, run:
 
-## Where to find things
+```bash
+npm install
+```
 
-| File | Purpose |
+Customer app:
+
+```bash
+npm run web
+```
+
+Technician app:
+
+```bash
+npm run web:technician
+```
+
+Open the address shown in the terminal. Use two terminals to run both apps.
+
+## Timeline
+
+Our team uses Jira to divide the work into tasks and track each sprint.
+
+| Stage | Main goals |
 | --- | --- |
-| `src/pages/SignIn.tsx` | The sign-in page |
-| `src/pages/CreateAccount.tsx` | The create-account page |
-| `src/parts/Logo.tsx` | The company logo and name |
-| `src/parts/TextBox.tsx` | A box where you type, with a label and error message |
-| `src/styles/PageStyle.ts` | Colors, sizes, and spacing for both pages |
-| `src/helpers/AccountHelp.ts` | Checks account details; includes a helper for a future server connection |
-| `src/app/index.tsx` | Connects the opening route `/` to the sign-in screen |
-| `src/app/register.tsx` | Connects `/register` to the registration screen |
-| `src/app/_layout.tsx` | Sets up the pages and phone status bar |
+| September 2026 | Meet the client and write the project proposal and charter. |
+| Customer app | Build accounts, issue selection, written descriptions, photos and videos, service location, and request submission. |
+| Client feedback | Update the customer home page, menu, notifications, account settings, and payment screens. |
+| Technician home | Set up the technician app, home page, and navigation. |
+| Technician sprint | Build the jobs list, request offers, navigation screen, on-site screen, work forms, and messages, earnings, and settings. |
+| CSC 191 — Spring 2027 | Connect the customer and technician workflows, add the dispatcher tools, test the system, and prepare it for release. |
+| May 1, 2027 | Target date to deliver the project to the client. |
 
-Expo Router gives `index.tsx` and `_layout.tsx` special meaning, so those filenames stay as required. Route files are small entry points; edit the descriptive files in `src/pages/` to change the pages. Existing URLs and navigation stay the same.
+We will update our sprint dates and task progress in Jira as our group completes the work.
 
-Folder names: `pages` holds whole pages, `parts` holds reusable pieces, `styles` controls how things look, and `helpers` holds supporting code. Files in `app` connect page addresses to the pages. Root configuration files such as `package.json`, `app.json`, and `tsconfig.json` keep their standard names because the tools expect them.
+## Testing
+
+Our group will add our full testing plan and results in CSC 191. We will check that:
+
+- Customers can create accounts, sign in, and submit service requests.
+- Descriptions, addresses, and attachments are saved correctly.
+- Technicians can receive jobs and update their progress.
+- Customers receive the correct job updates and messages.
+- Users can only access information they are allowed to see.
+- The apps work on supported phones and in a browser.
+
+## Deployment
+
+We will add our release steps in CSC 191. We will explain how we build and publish both apps, set up Firebase for our client, and update our apps after release. Our group will also record the settings and access we need to manage the live system.
+
+## Developer instructions
+
+We will add our full developer guide in CSC 191. For now, our group follows these steps:
+
+- We keep our customer app files in `apps/customer`.
+- We keep our technician app files in `apps/technician`.
+- We share our Firebase connection through `packages/backend`.
+- We use the same Firebase project for both apps.
+- We keep our `.env` files and private account information out of GitHub.
+- We create a branch for each Jira task and make our changes there.
+- We open a pull request so our team can review the changes before they go into the main branch.
+
+In CSC 191, we will add more details about the database, user roles, app setup, and how future developers can maintain the project.
