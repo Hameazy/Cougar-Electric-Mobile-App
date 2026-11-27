@@ -1,1 +1,19 @@
-{"expo":{"name":"Cougar Electric Technician","slug":"cougar-electric-technician","scheme":"cougar-technician","version":"1.0.0","orientation":"portrait","userInterfaceStyle":"dark","plugins":["expo-router"]}}
+{
+  "expo": {
+    "name": "Cougar Electric Technician",
+    "slug": "cougar-electric-technician",
+    "scheme": "cougar-technician",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "dark",
+    "plugins": [
+      "expo-router",
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "Allow Cougar Electric Technician to use your location to route you to assigned customers."
+        }
+      ]
+    ]
+  }
+}

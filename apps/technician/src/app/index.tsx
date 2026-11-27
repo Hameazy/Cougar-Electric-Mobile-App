@@ -16,7 +16,8 @@ export default function TechnicianHome() {
       stopJobs();
       setSummary({today:0,completed:0,active:0,hours:0,earnings:0});
       if(!user) return;
-      stopJobs=onSnapshot(query(collection(getFirestore(app),'serviceRequests'),where('technicianId','==',user.uid)),snapshot=>{
+      // CE-42 and CE-43 must use this same canonical assignment field.
+      stopJobs=onSnapshot(query(collection(getFirestore(app),'serviceRequests'),where('assignedTechnician.id','==',user.uid)),snapshot=>{
         const jobs=snapshot.docs.map(item=>item.data());
         const today=jobs.filter(job=>{
           const date=job.updatedAt?.toDate?.();
@@ -28,7 +29,13 @@ export default function TechnicianHome() {
     });
     return ()=>{stopAuth();stopJobs();};
   },[]);
-  const navigate=(destination:string)=>router.push({pathname:'/[destination]',params:{destination}});
+  const navigate=(destination:string)=>{
+    if(destination==='navigation') {
+      router.push('/navigation');
+      return;
+    }
+    router.push({pathname:'/[destination]',params:{destination}});
+  };
   const links = [
     { title: 'Jobs', icon: '▤', detail: `${summary.active} active, ${summary.completed} completed`, color: '#F5B900', path: 'jobs' },
     { title: 'Service Request Offers', icon: 'ϟ', detail: 'Review incoming service requests', color: '#F5B900', path: 'service-request-offer' },

@@ -26,9 +26,14 @@ service cloud.firestore {
       allow delete: if false;
     }
 
-    // Customers may cancel eligible requests or retry a search after no match.
+    // Customers may read their requests. Technicians may read only requests
+    // explicitly assigned to their authenticated uid by the matching workflow.
+    // CE-42 and CE-43 must preserve assignedTechnician.id as this contract.
+    // Whether job-history reads should later be status-limited is intentionally
+    // left to those workflows; assignment ownership remains the access boundary.
     match /serviceRequests/{requestId} {
-      allow read: if request.auth != null && resource.data.customerId == request.auth.uid;
+      allow read: if isOwner(resource.data.customerId)
+        || isAssignedTechnician(resource.data);
       allow create: if request.auth != null
         && request.resource.data.customerId == request.auth.uid
         && validServiceRequest(request.resource.data)
@@ -98,11 +103,36 @@ service cloud.firestore {
         && data.city is string && data.city.size() > 0 && data.city.size() <= 100
         && data.state is string && data.state.matches('[A-Z]{2}')
         && data.zip is string && data.zip.matches('[0-9]{5}(-[0-9]{4})?')
-        && data.attachments is list && data.attachments.size() <= 5;
+        && data.attachments is list && data.attachments.size() <= 5
+        && validOptionalCoordinates(data);
+    }
+
+    function validOptionalCoordinates(data) {
+      let hasLatitude = data.keys().hasAny(['latitude']);
+      let hasLongitude = data.keys().hasAny(['longitude']);
+      return (!hasLatitude && !hasLongitude)
+        || (
+          hasLatitude
+          && hasLongitude
+          && data.latitude is number
+          && data.latitude >= -90
+          && data.latitude <= 90
+          && data.longitude is number
+          && data.longitude >= -180
+          && data.longitude <= 180
+        );
     }
 
     function isOwner(customerId) {
       return request.auth != null && request.auth.uid == customerId;
+    }
+
+    function isAssignedTechnician(data) {
+      return request.auth != null
+        && data.keys().hasAll(['assignedTechnician'])
+        && data.assignedTechnician is map
+        && data.assignedTechnician.keys().hasAll(['id'])
+        && data.assignedTechnician.id == request.auth.uid;
     }
 
     // Same rules as the Create Account screen (src/helpers/AccountHelp.ts),

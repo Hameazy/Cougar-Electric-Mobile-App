@@ -17,8 +17,9 @@ export type MapMarker = MapPoint & {
 // Where the customer is right now (the blue dot). accuracyMeters draws the soft circle.
 export type UserLocationPoint = MapPoint & { accuracyMeters?: number };
 
-// 'dark' matches the app, 'streets' is a bright, colorful street map.
-export type MapTheme = 'dark' | 'streets';
+// 'navigation-light' is an isolated web theme for the technician navigation
+// screen. Customer maps continue to use their existing dark/streets themes.
+export type MapTheme = 'dark' | 'streets' | 'navigation-light';
 
 // Web only: did the street tiles load? The screen shows a message if not.
 export type TileStatus = 'ok' | 'failed';
