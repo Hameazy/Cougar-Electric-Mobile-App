@@ -22,6 +22,9 @@ const PIN_CSS = `
 .ce-map .leaflet-control-attribution { background: rgba(7, 11, 19, 0.7); color: ${MAP_COLORS.muted}; font-size: 10px; }
 .ce-map .leaflet-control-attribution a { color: #AFC4E2; }
 .ce-map .leaflet-tile-pane { transition: opacity 0.3s; }
+.ce-map .ce-dark-map-tile { filter: brightness(0.65) invert(1) contrast(2.4) hue-rotate(195deg) saturate(0.35) brightness(0.72); }
+.ce-map .ce-maptiler-logo { margin: 0 0 8px 8px; }
+.ce-map .ce-maptiler-logo img { display: block; height: 24px; width: auto; }
 .ce-pin { background: transparent; border: 0; }
 .ce-home { width: 22px; height: 22px; border-radius: 50%; background: ${MAP_COLORS.volt}; border: 4px solid ${MAP_COLORS.night}; box-sizing: border-box; position: relative; box-shadow: 0 0 0 10px rgba(245, 185, 0, 0.18); }
 .ce-home::after { content: ''; position: absolute; inset: -16px; border-radius: 50%; border: 2px solid rgba(245, 185, 0, 0.6); animation: ce-pulse 2.6s ease-out infinite; }
@@ -192,11 +195,32 @@ export function ServiceMap({
     const info = TILE_LAYERS[theme];
     const tiles = L.tileLayer(info.url, {
       attribution: info.attribution,
+      className: info.darkFilter ? 'ce-dark-map-tile' : undefined,
       subdomains: info.subdomains,
       maxZoom: 19,
       crossOrigin: true,
     }).addTo(map);
     tilesRef.current = tiles;
+
+    let mapTilerLogo: L.Control | undefined;
+    if (info.showMapTilerLogo) {
+      const logoControl = new L.Control({ position: 'bottomleft' });
+      logoControl.onAdd = () => {
+        const wrapper = L.DomUtil.create('div', 'ce-maptiler-logo');
+        const link = document.createElement('a');
+        link.href = 'https://www.maptiler.com/';
+        link.target = '_blank';
+        link.rel = 'noopener noreferrer';
+        const logo = document.createElement('img');
+        logo.src = 'https://api.maptiler.com/resources/logo.svg';
+        logo.alt = 'MapTiler';
+        link.appendChild(logo);
+        wrapper.appendChild(link);
+        return wrapper;
+      };
+      logoControl.addTo(map);
+      mapTilerLogo = logoControl;
+    }
 
     let loaded = 0;
     let failed = 0;
@@ -223,6 +247,7 @@ export function ServiceMap({
       tiles.off('tileload', onTileLoad);
       tiles.off('tileerror', onTileError);
       tiles.remove();
+      mapTilerLogo?.remove();
     };
   }, [theme]);
 
