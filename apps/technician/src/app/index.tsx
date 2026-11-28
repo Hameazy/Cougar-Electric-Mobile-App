@@ -28,7 +28,24 @@ export default function TechnicianHome() {
     });
     return ()=>{stopAuth();stopJobs();};
   },[]);
-  const navigate=(destination:string)=>router.push({pathname:'/[destination]',params:{destination}});
+const navigate = (destination: string) => {
+  switch (destination) {
+    case 'messages':
+      router.push('/messages');
+      break;
+    case 'earnings':
+      router.push('/earnings');
+      break;
+    case 'settings':
+      router.push('/settings');
+      break;
+    default:
+      router.push({
+        pathname: '/[destination]',
+        params: { destination },
+      });
+  }
+};
   const links = [
     { title: 'Jobs', icon: '▤', detail: `${summary.active} active, ${summary.completed} completed`, color: '#F5B900', path: 'jobs' },
     { title: 'Service Request Offers', icon: 'ϟ', detail: 'Review incoming service requests', color: '#F5B900', path: 'service-request-offer' },
